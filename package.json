@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "jest --runInBand",
+    "test": "node --test scripts/*.test.mjs && jest --runInBand",
     "test:watch": "jest --watch",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "bundle": "pnpm --filter @idiom/showcase bundle",

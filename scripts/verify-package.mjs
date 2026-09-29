@@ -10,8 +10,10 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { delimiter, dirname, join, resolve, sep } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { packageEnvironment } from './package-environment.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
@@ -19,20 +21,10 @@ const pnpmCli = process.env.npm_execpath;
 if (!pnpmCli) throw new Error('Run this check with pnpm run verify:package.');
 
 function run(args, cwd = root) {
-  const env = { ...process.env, CI: '1', EXPO_NO_TELEMETRY: '1' };
-  const inheritedPath =
-    Object.entries(env).find(([key]) => key.toLowerCase() === 'path')?.[1] ?? '';
-  for (const key of Object.keys(env)) {
-    if (key.toLowerCase() === 'path' || key === 'NODE_PATH') delete env[key];
-  }
-  env.PATH = [
-    join(cwd, 'node_modules', '.bin'),
-    ...inheritedPath.split(delimiter).filter((entry) => !entry.includes('node_modules')),
-  ].join(delimiter);
   const result = spawnSync(process.execPath, [pnpmCli, ...args], {
     cwd,
     stdio: 'inherit',
-    env,
+    env: packageEnvironment(cwd, root),
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`pnpm ${args.join(' ')} failed (${result.status}).`);

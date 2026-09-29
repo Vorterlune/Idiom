@@ -1,0 +1,50 @@
+{
+  "name": "@idiom/ui",
+  "version": "0.1.0",
+  "description": "Semantic application patterns for React Native, built on native UI.",
+  "license": "MIT",
+  "author": "Vorterlune",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vorterlune/Idiom.git",
+    "directory": "packages/ui"
+  },
+  "homepage": "https://github.com/Vorterlune/Idiom#readme",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "react-native": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "react-native": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../scripts/package-metadata.mjs",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@expo/material-symbols": "0.1.1"
+  },
+  "peerDependencies": {
+    "@expo/ui": "~57.0.20",
+    "expo": "^57.0.25",
+    "react": "^19.2.3",
+    "react-native": "^0.86.0",
+    "react-native-safe-area-context": ">=5.6.0 <6"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

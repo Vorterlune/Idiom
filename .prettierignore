@@ -1,0 +1,13 @@
+node_modules
+.pnpm-store
+dist
+coverage
+.expo
+.artifacts
+.consumer-test
+pnpm-lock.yaml
+apps/showcase/android
+apps/showcase/ios
+packages/ui/README.md
+packages/ui/LICENSE
+packages/ui/THIRD_PARTY_NOTICES.md

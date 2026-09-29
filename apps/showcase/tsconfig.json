@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "customConditions": ["react-native"] },
+  "include": ["app", "src", "expo-env.d.ts", ".expo/types/**/*.ts"]
+}

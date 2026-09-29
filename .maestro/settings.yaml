@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+name: Controlled preferences
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- assertVisible: .*Notifications are on.*
+- tapOn:
+    id: notifications-toggle
+- assertVisible: .*Notifications are off.*
+- tapOn:
+    id: notifications-toggle
+- assertVisible: .*Notifications are on.*
+- tapOn:
+    id: appearance-picker
+- tapOn: Dark
+- tapOn:
+    id: appearance-picker
+- tapOn: Light
+- tapOn:
+    id: appearance-picker
+- tapOn: System

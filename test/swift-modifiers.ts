@@ -1,0 +1,25 @@
+import { modifier } from './native-modifier';
+
+export const accessibilityLabel = modifier('accessibilityLabel');
+export const accessibilityHint = modifier('accessibilityHint');
+export const accessibilityValue = modifier('accessibilityValue');
+export const accessibilityIdentifier = modifier('accessibilityIdentifier');
+export const accessibilityHidden = modifier('accessibilityHidden');
+export const accessibilityElement = modifier('accessibilityElement');
+export const accessibilityAddTraits = modifier('accessibilityAddTraits');
+export const disabled = modifier('disabled');
+export const frame = modifier('frame');
+export const font = modifier('font');
+export const foregroundStyle = modifier('foregroundStyle');
+export const pickerStyle = modifier('pickerStyle');
+export const tag = modifier('tag');
+export const padding = modifier('padding');
+export const tint = modifier('tint');
+export const buttonStyle = modifier('buttonStyle');
+export const listStyle = modifier('listStyle');
+export const scrollContentBackground = modifier('scrollContentBackground');
+export const background = modifier('background');
+export const onSubmit = modifier('onSubmit');
+export const multilineTextAlignment = modifier('multilineTextAlignment');
+export const contentShape = modifier('contentShape');
+export const shapes = { rectangle: () => ({ type: 'rectangle' }) };

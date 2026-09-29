@@ -1,0 +1,20 @@
+appId: ${APP_ID}
+name: Search and empty state
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- tapOn:
+    id: settings-search
+- inputText: nOtIfIcAtIoNs
+- assertVisible: Notifications
+- assertNotVisible: Profile
+- eraseText
+- inputText: no-such-setting
+- assertVisible: No settings found
+- tapOn: Clear search
+- assertVisible: Profile
+- assertVisible: Notifications

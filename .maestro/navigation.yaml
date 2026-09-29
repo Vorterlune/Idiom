@@ -1,0 +1,62 @@
+appId: ${APP_ID}
+name: Settings destinations
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- tapOn:
+    id: profile-link
+- assertVisible: Your account
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Settings
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- tapOn:
+    id: privacy-link
+- assertVisible: Your choices
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Settings
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- scrollUntilVisible:
+    element:
+      id: licences-link
+    direction: DOWN
+- tapOn:
+    id: licences-link
+- assertVisible: Project licence
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: Settings
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - back
+- scrollUntilVisible:
+    element:
+      id: components-link
+    direction: DOWN
+- tapOn:
+    id: components-link
+- assertVisible: Rows & slots
+- tapOn:
+    id: sample-action
+- assertVisible: .*Activated 1 time.*

@@ -1,0 +1,50 @@
+{
+  "name": "idiom-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "pnpm --filter @idiom/showcase start",
+    "android": "pnpm --filter @idiom/showcase android",
+    "ios": "pnpm --filter @idiom/showcase ios",
+    "build": "pnpm --filter @idiom/ui build",
+    "typecheck": "pnpm build && pnpm -r typecheck && tsc -p test/tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build",
+    "bundle": "pnpm --filter @idiom/showcase bundle",
+    "doctor": "pnpm --filter @idiom/showcase exec expo-doctor",
+    "verify:package": "node scripts/verify-package.mjs"
+  },
+  "devDependencies": {
+    "expo": "~57.0.25",
+    "@expo/ui": "~57.0.20",
+    "@expo/material-symbols": "0.1.1",
+    "typescript": "~6.0.3",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.2",
+    "prettier": "^3.6.2",
+    "jest": "^29.7.0",
+    "jest-expo": "~57.0.5",
+    "@types/jest": "^29.5.14",
+    "@testing-library/react-native": "^14.0.1",
+    "@react-native/jest-preset": "0.86.3",
+    "@react-native/metro-config": "0.86.3",
+    "test-renderer": "1.2.0",
+    "@types/react": "~19.2.0",
+    "@types/node": "^24.0.0",
+    "@babel/core": "^7.29.0",
+    "babel-preset-expo": "~57.0.13",
+    "expo-doctor": "1.20.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0"
+  }
+}

@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
+nodeLinker: hoisted
+autoInstallPeers: false
+minimumReleaseAge: 1440
+allowBuilds:
+  unrs-resolver: true

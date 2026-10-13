@@ -2,9 +2,77 @@
 
 **One API. Native conventions.**
 
-Idiom is a collection of semantic application components for React Native and Expo. Describe a preference once; Idiom supplies its grouping, icons, interactions, accessibility, and platform presentation through native SwiftUI and Jetpack Compose controls.
+Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use application components, starting with settings screens. Expo UI supplies the SwiftUI and Jetpack Compose controls; Idiom supplies the layout, semantic icons, labels, and interaction conventions that make them work together as preferences.
 
-Settings is the first application pattern. The goal is for application code to express what a preference means, while iOS feels like iOS and Android feels like Android.
+Describe what a preference means, connect it to your state, and let Idiom handle its platform presentation.
+
+## Expo UI and Idiom, compared
+
+Both examples below show a Settings screen with a Notifications toggle and a description. Both use the same React state and assume an application-owned `SafeAreaProvider` above the screen; see [application setup](#install-in-an-application). Idiom uses its own platform defaults for spacing, typography, and interaction.
+
+### With Expo UI
+
+Compose the screen and preference row from individual primitives:
+
+```tsx
+import { useState } from 'react';
+import { Text as RNText } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Host, FieldGroup, Row, Column, Spacer, Icon, Text, Switch } from '@expo/ui';
+
+const notificationIcon = Icon.select({
+  ios: 'bell.fill',
+  android: import('@expo/material-symbols/notifications.xml'),
+});
+
+export function Preferences() {
+  const [notifications, setNotifications] = useState(true);
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <RNText
+        style={{
+          fontSize: 32,
+          fontWeight: '700',
+          margin: 20,
+        }}
+      >
+        Settings
+      </RNText>
+
+      <Host style={{ flex: 1 }}>
+        <FieldGroup>
+          <FieldGroup.Section title="Preferences">
+            <Row alignment="center" spacing={12} style={{ padding: 12 }}>
+              <Icon name={notificationIcon} size={22} />
+
+              <Column spacing={4}>
+                <Text>Notifications</Text>
+                <Text
+                  textStyle={{
+                    fontSize: 13,
+                    color: '#777',
+                  }}
+                >
+                  Receive important updates
+                </Text>
+              </Column>
+
+              <Spacer flexible />
+
+              <Switch value={notifications} onValueChange={setNotifications} />
+            </Row>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </Host>
+    </SafeAreaView>
+  );
+}
+```
+
+### With Idiom
+
+Describe the preference through a component that owns that composition:
 
 ```tsx
 import { useState } from 'react';
@@ -28,6 +96,28 @@ export function Preferences() {
   );
 }
 ```
+
+The `value` and `onValueChange` contract stays the same. `Settings.Screen` supplies the safe-area view, title, native host, scrolling, and tablet width constraint. `Settings.Toggle` supplies the icon mapping, label, description, and platform-specific control behavior.
+
+Expo UI already supports a concise `<Switch label="Notifications" ... />` for a simple preference. The reason to add Idiom is the reusable behavior around richer rows: label and description association, disabled handling, semantic colors, and platform interaction. With direct composition, the application owns those decisions; for example, the Expo UI snippet above still needs accessibility association between its separate text and switch. See [what the semantic layer adds](docs/semantic-layer.md) for the implementation tradeoffs.
+
+## Why use Idiom?
+
+Use Idiom when you want familiar native settings screens without maintaining the same row composition throughout your app.
+
+- **Add a preference with fewer UI decisions.** Supply a label, description, semantic icon, and controlled value. Spacing, secondary text styling, and native hosting already have defaults.
+- **Keep screens consistent as they grow.** Toggle, Picker, Link, and Value share the same row vocabulary. A new section follows the same conventions as the rest of your settings.
+- **Keep platform details in one place.** `icon="notifications"` maps to SF Symbols on iOS and Material Symbols on Android. Platform adapters handle native grouping, controls, and row behavior behind the same public API.
+- **Centralize interaction and accessibility wiring.** Idiom implements combined labels, accessibility hints, disabled guards, and controlled change callbacks. You can still provide explicit accessibility labels and hints. Native behavior remains subject to the [device verification matrix](docs/verification.md).
+- **Read and review the feature logic directly.** A preference declares what it changes and which handler runs. Reviewers can focus on state updates and side effects without following a tree of layout primitives for each row.
+
+## How it fits your development workflow
+
+Start with one settings screen in your existing Expo app. Keep your hooks, state store, persistence, permission handling, and router. Pass their values and callbacks into Idiom; a notification toggle still needs your application logic to request permission, save the preference, or call a server.
+
+Use `IdiomProvider` when you need appearance or accent overrides. Compose reusable sections with ordinary React components, fragments, and conditional children. For custom React Native content, use the screen's `header` slot or a row's display-only `trailing` slot; see [composition and custom content](#composition-and-custom-content). The native Storybook catalogue lets you explore props, events, and appearance while developing.
+
+Keep using Expo UI directly for screens that need custom layouts or controls outside Idiom's current patterns. Idiom is a good fit when its native defaults match your product; direct primitives give you more control when they do not. The tradeoff is an extra dependency and a deliberately small styling API. The current scope is iOS and Android settings, plus `SearchBar` and `EmptyState`; package availability and validation status are below.
 
 ## Status
 

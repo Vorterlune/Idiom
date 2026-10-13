@@ -67,6 +67,14 @@ Default phone layouts kept preview content clear of the status area and Storyboo
 
 Actions checks establish that callbacks appear in the log. Exact event counts were not established with both clients connected to the shared channel: some activations displayed two log entries. The existing automated callback-contract tests passed.
 
+### CI dependency alignment — 2026-10-13
+
+The first Storybook CI runs passed `pnpm check` but failed Expo Doctor's package-version check (20/21 checks). Running `pnpm run doctor` locally reproduced the same seven patch mismatches. The showcase now uses Expo 57.0.28, Expo UI 57.0.23, constants 57.0.21, development client 57.0.20, linking 57.0.12, router 57.0.26, and splash screen 57.0.10. Root Expo and Expo UI tooling use the same patches so clean-consumer verification tests the aligned versions. React 19.2.3, React Native 0.86.3, and public library peer requirements are unchanged.
+
+With the updated lockfile, frozen installation, peer checks, `pnpm check` (48 component tests and 2 script tests), Expo Doctor (21/21), normal and Storybook iOS/Android exports, and `pnpm verify:package` passed locally. Source maps again confirm normal exports contain zero Storybook/story modules and Storybook exports include all 11 story files. The existing Doctor CI step remains enabled without exclusions or ignored failures.
+
+The native device results above precede this patch alignment. Native builds and interaction checks have not been repeated with the new Expo patches; rebuild development clients before validating this dependency set on devices.
+
 ### Native release gates
 
 | Gate              | Required evidence                                                                             | Native status                                         |

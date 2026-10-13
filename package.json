@@ -20,11 +20,16 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "bundle": "pnpm --filter @idiom/showcase bundle",
     "doctor": "pnpm --filter @idiom/showcase exec expo-doctor",
-    "verify:package": "node scripts/verify-package.mjs"
+    "verify:package": "node scripts/verify-package.mjs",
+    "storybook": "pnpm --filter @idiom/showcase storybook",
+    "storybook:ios": "pnpm --filter @idiom/showcase storybook:ios",
+    "storybook:android": "pnpm --filter @idiom/showcase storybook:android",
+    "storybook:generate": "pnpm --filter @idiom/showcase storybook:generate",
+    "storybook:bundle": "pnpm --filter @idiom/showcase storybook:bundle"
   },
   "devDependencies": {
-    "expo": "~57.0.25",
-    "@expo/ui": "~57.0.20",
+    "expo": "~57.0.28",
+    "@expo/ui": "~57.0.23",
     "@expo/material-symbols": "0.1.1",
     "typescript": "~6.0.3",
     "eslint": "^9.39.5",

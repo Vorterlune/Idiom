@@ -16,6 +16,16 @@ Use `pnpm android` with a configured Android development environment, or `pnpm i
 
 The showcase opts into `ios.enableSceneSupport: true` through `expo-build-properties`. Expo SDK 57 needs this setting when building with Xcode 27 for iOS 27. Keep it in the app configuration, regenerate the native iOS project through Expo prebuild after changing it, and rebuild the development client; reloading JavaScript does not apply the native lifecycle change. Preserve any manual native edits before regeneration. See [Expo's SDK 57 scene-lifecycle guidance](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md#staying-on-sdk-57-with-xcode-27).
 
+## Storybook
+
+Run `pnpm storybook`, `pnpm storybook:ios`, or `pnpm storybook:android` to start the native development client with `STORYBOOK_ENABLED=true`. Rebuild the client with `pnpm ios` or `pnpm android` after adding native dependencies. Stop Metro before switching modes; `pnpm start` opens the normal showcase. These stories use native `@expo/ui` controls and require a development build, not Expo Go or a browser.
+
+Add typed CSF `.stories.tsx` files under `apps/showcase/stories`, importing components through `@idiom/ui`. Keep stories outside the Router's `app` directory and the published library. Configuration lives in `apps/showcase/.rnstorybook`; shared decorators live in `stories/harness.tsx`. The generated story loader is ignored; `pnpm storybook:generate` refreshes it, and typechecking regenerates it automatically.
+
+Use the existing decorators and wrappers: Storybook supplies the `SafeAreaProvider`, the global decorator supplies an `IdiomProvider`, and settings rows and controls need `Settings.Screen`/`Settings.Section` wrappers. Storybook handles canvas insets, so the screen wrappers use `safeAreaEdges={[]}`. Avoid adding another safe-area provider or scroll container. Keep appearance typed as `system | light | dark`; call `useArgs` in the CSF render function and emit Actions so changing or resetting Controls restores the displayed state.
+
+Run `pnpm storybook:bundle` alongside the normal `pnpm bundle` to check both iOS and Android exports. On each native platform, check story switching, Controls/Actions, reset behavior, appearance, scrolling, and safe-area layout. Record any native checks that could not be performed in the [verification record](docs/verification.md).
+
 ## Making a change
 
 1. Add or update the smallest relevant showcase example.

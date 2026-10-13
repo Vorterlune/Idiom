@@ -20,7 +20,12 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "bundle": "pnpm --filter @idiom/showcase bundle",
     "doctor": "pnpm --filter @idiom/showcase exec expo-doctor",
-    "verify:package": "node scripts/verify-package.mjs"
+    "verify:package": "node scripts/verify-package.mjs",
+    "storybook": "pnpm --filter @idiom/showcase storybook",
+    "storybook:ios": "pnpm --filter @idiom/showcase storybook:ios",
+    "storybook:android": "pnpm --filter @idiom/showcase storybook:android",
+    "storybook:generate": "pnpm --filter @idiom/showcase storybook:generate",
+    "storybook:bundle": "pnpm --filter @idiom/showcase storybook:bundle"
   },
   "devDependencies": {
     "expo": "~57.0.25",

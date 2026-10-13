@@ -8,6 +8,7 @@ coverage
 pnpm-lock.yaml
 apps/showcase/android
 apps/showcase/ios
+apps/showcase/.rnstorybook/storybook.requires.ts
 packages/ui/README.md
 packages/ui/LICENSE
 packages/ui/THIRD_PARTY_NOTICES.md

@@ -59,6 +59,26 @@ Android requires the Android SDK, a supported Java runtime, and an emulator or d
 
 The showcase includes Account, Preferences, and About sections, working Profile/Privacy/Licences destinations, appearance selection, search, and an empty state. Its Component lab demonstrates all public components, custom slots, wrapped components, fragments, conditional children, disabled controls, long text, and long scrolling. Preferences intentionally reset when the app process restarts; the demo sends no analytics and does not request notification permissions.
 
+## Run Storybook
+
+Storybook runs inside the showcase's native development client on an iOS simulator, Android emulator, or device. It renders the actual `@expo/ui` controls; a browser or Expo Go cannot run these stories.
+
+```sh
+pnpm storybook          # Start Metro in Storybook mode
+pnpm storybook:ios      # Start and open the installed iOS development client
+pnpm storybook:android  # Start and open the installed Android development client
+```
+
+These commands set `STORYBOOK_ENABLED=true`. Build or rebuild the development client with `pnpm ios` or `pnpm android` after installing new native dependencies. Stop Metro before switching between Storybook and the normal showcase (`pnpm start`), then close and reopen the development client. A stale client session can show a blank screen or fail while replacing its native React context.
+
+For an Android phone connected over USB, enable USB debugging and authorize the computer, then run `adb reverse tcp:8081 tcp:8081` and `pnpm storybook:android --localhost`. If several Android devices are connected, target the phone's serial with `adb -s <serial> reverse tcp:8081 tcp:8081` and choose that device when Expo prompts.
+
+If an iOS simulator cannot connect with `--localhost`, Metro may be listening only on IPv6 while Expo requests `127.0.0.1`. Restart it with `NODE_OPTIONS=--dns-result-order=ipv4first pnpm storybook:ios --localhost`.
+
+The catalogue covers every public component, with Controls for props, Actions for events, and System/Light/Dark appearance. Controlled examples update their args, so editing or resetting Controls also updates the rendered value. Stories live in `apps/showcase/stories`; configuration lives in `apps/showcase/.rnstorybook`. See [contributor guidance](CONTRIBUTING.md#storybook) to add a story.
+
+Use `pnpm storybook:generate` to regenerate the ignored story loader, or `pnpm storybook:bundle` to check both iOS and Android exports. Typechecking regenerates the loader automatically. Bundle checks do not establish native rendering or interaction correctness; see the [verification record](docs/verification.md).
+
 ## Install in an application
 
 While the package is unpublished, build and pack `@idiom/ui`, then install the resulting tarball into an Expo application. Use Expo's installer to select compatible native dependencies:

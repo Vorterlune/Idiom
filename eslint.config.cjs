@@ -20,6 +20,7 @@ module.exports = defineConfig([
       '.consumer-test/**',
       'apps/showcase/android/**',
       'apps/showcase/ios/**',
+      'apps/showcase/.rnstorybook/storybook.requires.ts',
     ],
   },
   {

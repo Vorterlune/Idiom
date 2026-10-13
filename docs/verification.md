@@ -2,7 +2,7 @@
 
 ## Current status
 
-The implementation is developed on Windows. Native iOS execution requires macOS/Xcode, and Android execution requires an Android SDK, a compatible Java runtime, and a running device or emulator. The project owner will run the Mac/device checks. Native checks below are **pending until run and recorded**. Automated mocked tests and Metro bundle checks cannot be substituted for them.
+The initial implementation was developed on Windows; subsequent macOS and device checks are recorded below. Native iOS execution requires macOS/Xcode, and Android execution requires an Android SDK, a compatible Java runtime, and a running device or emulator. Native checks below are **pending until run and recorded**. Automated mocked tests and Metro bundle checks cannot be substituted for them.
 
 ### Automated record — 2026-09-29
 
@@ -22,17 +22,60 @@ Environment: Windows, Node 24.19, pnpm 11.19, Expo 57.0.25, Expo UI 57.0.20, Rea
 
 The local clean-consumer evidence is recorded in `.artifacts/consumer-verification.json` at `2026-09-29T04:37:08.602Z`, using `.artifacts/package-FBWFwC/idiom-ui-0.1.0.tgz`. These generated artifacts are untracked; rerun `pnpm verify:package` to produce a fresh record.
 
-Native builds, device boot, Maestro execution, visual layout, and VoiceOver/TalkBack checks have not been performed in this environment.
+At this baseline, native builds, device boot, Maestro execution, visual layout, and VoiceOver/TalkBack checks had not been performed.
+
+### Storybook integration — 2026-10-13
+
+Environment: macOS, Node 24.21.0, pnpm 11.19.0, the existing Expo/React Native versions above, React Native Storybook and on-device addons 10.6.2, Storybook core 10.6.1. Core 10.6.2 was inside the workspace's 24-hour minimum release age, so the compatible 10.6.1 release is pinned. Existing application dependency version ranges are unchanged.
+
+| Check                                                            | Result                                                                                                                                                                                               |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frozen-lockfile installation and peer dependencies               | Passed; no peer issues                                                                                                                                                                               |
+| Library/showcase/public-contract TypeScript and story generation | Passed, including generation before showcase typechecking                                                                                                                                            |
+| ESLint and formatting                                            | Passed                                                                                                                                                                                               |
+| Behavioral tests                                                 | 48 component tests and 2 script tests passed with the original timeouts; initial cold-cache tests timed out during concurrent native compilation, then passed unchanged                              |
+| Normal showcase exports                                          | iOS and Android passed; source maps contain zero Storybook or story modules                                                                                                                          |
+| Storybook exports                                                | iOS and Android passed; each includes all 11 story files                                                                                                                                             |
+| Live Storybook index                                             | 40 stories covering all public components and composition examples                                                                                                                                   |
+| Packed library in a clean external consumer                      | Installation, public types, and iOS/Android exports passed                                                                                                                                           |
+| Expo Doctor                                                      | 20/21 checks passed; dependency-version check requests newer patches for seven existing Expo packages. Versions retained to keep this change scoped to Storybook                                     |
+| Native builds                                                    | Xcode 27 built and installed the iOS 27 simulator app. Android debug assembly passed with JBR 21, Gradle 9.3.1, and the Expo-selected SDK/NDK; APK installed on Pixel 9 (Android 17/API 37) over USB |
+| Native runtime checks                                            | Storybook and normal showcase boot on Pixel 9 and iPhone 18 Pro simulator; interaction results recorded below                                                                                        |
+
+Bundle-source evidence and the live story index are saved locally under `.artifacts/storybook-bundles.json` and `.artifacts/storybook-index.json`. These generated artifacts are untracked. Run `pnpm bundle --source-maps`, `pnpm storybook:bundle --source-maps`, and inspect the maps to reproduce the inclusion/exclusion check.
+
+The iOS Expo launch command timed out opening the simulator UI after a successful build/install. Opening Xcode 27's Device Hub and launching the installed app directly recovered it. With `--localhost`, Metro initially listened only on IPv6 while the simulator requested `127.0.0.1`; restarting Metro with `NODE_OPTIONS=--dns-result-order=ipv4first` restored connectivity. Switching modes in an existing iOS client session produced a blank screen even though accessibility state updated; terminating only Idiom and cold-opening Storybook restored visible rendering.
+
+On Android, Expo targeted an emulator that was closed after assembly; installing and launching the same APK directly on the user's USB-connected Pixel succeeded. One later development-client relaunch raised `App react context shouldn't be created before`; force-stopping only Idiom and reopening the development client restored it. This occurred in Expo's native launcher before the Storybook JavaScript startup. Android runtime checks used the physical Pixel rather than an emulator.
+
+The native smoke checks below used the uncommitted Storybook changes on top of `1cb69f2`, iPhone 18 Pro/iOS 27 in Xcode 27, and Pixel 9/Android 17 (API 37). Story changes were driven through Storybook's channel server; interactions used the simulator accessibility UI and Android USB debugging.
+
+| Check                                               | Pixel 9                                         | iPhone 18 Pro simulator                       |
+| --------------------------------------------------- | ----------------------------------------------- | --------------------------------------------- |
+| Storybook launch and story switching                | Passed                                          | Passed                                        |
+| Native Toggle and editable Controls value           | Passed; reset also restores the default         | Passed; reset also restores the default       |
+| Callback entries in Actions                         | Passed (`onPress`)                              | Passed (`onValueChange`)                      |
+| Picker selection, cancellation, disabled control    | Passed                                          | Passed                                        |
+| Native Search clear                                 | Passed; Controls value also cleared             | Passed                                        |
+| Search text entry and submission                    | Passed; callbacks logged and keyboard dismissed | Passed                                        |
+| Disabled Toggle activation                          | Passed; label and switch leave value unchanged  | Passed; value unchanged                       |
+| System/Light/Dark appearance                        | Default System and explicit Light/Dark passed   | Default System and explicit Light/Dark passed |
+| Long scrolling                                      | Reached item 48 and end footer                  | Reached final rows and end footer             |
+| Normal showcase launch and Component lab navigation | Passed                                          | Passed                                        |
+
+Default phone layouts kept preview content clear of the status area and Storybook toolbar. Device appearance changes while System is selected, full VoiceOver/TalkBack use, largest font settings, RTL, rotation/tablet layouts, every story variant, and the broader release gates below were not exercised. Local Pixel screenshots and the smoke result record are under `/tmp/idiom-android-pixel-*.png` and `/tmp/idiom-android-smoke-results.json`; they are untracked.
+
+Actions checks establish that callbacks appear in the log. Exact event counts were not established with both clients connected to the shared channel: some activations displayed two log entries. The existing automated callback-contract tests passed.
 
 ### Native release gates
 
-| Gate              | Required evidence                                                                             | Native status         |
-| ----------------- | --------------------------------------------------------------------------------------------- | --------------------- |
-| Foundation        | Development builds boot on iOS and Android                                                    | Pending               |
-| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction | Pending               |
-| Complete settings | Link, read-only Value, Picker, working destinations                                           | Pending               |
-| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                        | Pending               |
-| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                   | Pending native builds |
+| Gate              | Required evidence                                                                             | Native status                                         |
+| ----------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Foundation        | Development builds boot on iOS and Android                                                    | Passed 2026-10-13; environments and base commit above |
+| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction | Pending                                               |
+| Complete settings | Link, read-only Value, Picker, working destinations                                           | Pending                                               |
+| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                        | Pending                                               |
+| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                   | Pending native builds                                 |
 
 Before a release, replace pending entries with the date, OS/device, SDK version, commit, and result. Keep failures visible until corrected. A successful Android run does not certify iOS.
 

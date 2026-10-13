@@ -25,7 +25,7 @@ interface SearchableSection {
 export default function SettingsPage() {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const { appearance, setAppearance, notifications, setNotifications, sounds, setSounds } =
+  const { appearance, setAppearance, notifications, setNotifications, sounds, setSounds, profile } =
     usePreferences();
 
   const sections: SearchableSection[] = [
@@ -35,12 +35,12 @@ export default function SettingsPage() {
       rows: [
         {
           key: 'profile',
-          terms: 'profile name directory',
+          terms: `profile name directory ${profile.name}`,
           content: (
             <Settings.Link
               icon="person"
               label="Profile"
-              description="Alex Morgan"
+              description={profile.name}
               onPress={() => router.push('/profile')}
               testID="profile-link"
             />
@@ -48,8 +48,8 @@ export default function SettingsPage() {
         },
         {
           key: 'email',
-          terms: 'email alex@example.com',
-          content: <Settings.Value label="Email" value="alex@example.com" />,
+          terms: `email ${profile.email}`,
+          content: <Settings.Value label="Email" value={profile.email} />,
         },
         {
           key: 'privacy',

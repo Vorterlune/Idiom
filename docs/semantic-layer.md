@@ -70,4 +70,21 @@ Android currently needs a React Native accessibility/event boundary around the C
 
 The iOS selection adapter uses native Menu/Button choices because the installed Expo SwiftUI Picker retains local selection when the parent does not accept its callback. Idiom derives the visible label and choice checkmarks from the controlled value, keeping application state authoritative even when an update is rejected or delayed. Native focus and screen-reader behavior still require the device checks in the verification matrix.
 
-Settings is the first proof of the application-level contract. Additional patterns should be driven by real consumer needs rather than duplicating Expo's primitive catalog.
+## Editable forms keep application state in React
+
+Profile editing adds a different repeated pattern: label, help text, current value, validation message, keyboard behavior, and submission state. `Form.TextField` describes that field through a string `value`, `onChangeText`, and optional `error`; `Form.Screen` presents submission and pending state. The application keeps its existing validation and saving code.
+
+This is a deliberate input-model choice. Expo UI's [universal TextInput contract](https://github.com/expo/expo/blob/sdk-57/packages/expo-ui/src/universal/TextInput/types.ts) takes a native observable string. Idiom uses React Native TextInput hosted through `RNHostView` for a React-controlled string. It does not claim to make the native observable input controlled by mirroring two state stores. Expo UI provides the surrounding section layout and submit button; the editable text is an RN control. See the [README comparison](../README.md#editable-forms-expo-ui-and-idiom).
+
+| Application concern | Idiom form contract                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| Draft values        | Application string values and change handlers                                                  |
+| Validation          | Application rules and timing; Idiom displays supplied messages                                 |
+| Submission          | One guarded request from button or Done; application controls saving and pending state         |
+| Input purpose       | `kind="text"`, `"name"`, or `"email"` supplies keyboard, capitalization, and autofill defaults |
+| Focus               | An explicit focus/blur ref and submit override; no inferred child order                        |
+| Keyboard visibility | One RN scroll viewport measures the focused input across native hosting boundaries             |
+
+Forms use non-scrolling Expo layouts inside an RN scroll viewport because the existing native Settings scrollers do not provide the same imperative focus-reveal interface. That implementation detail remains internal; consumers supply fields and handlers. It does not change Settings' native scrolling or introduce another state-management dependency. Native keyboard transitions, measurement, and screen-reader announcements still require the [device checks](verification.md).
+
+Settings and editable forms are application patterns, rather than aliases for every Expo primitive. Further additions should continue to follow real consumer needs.

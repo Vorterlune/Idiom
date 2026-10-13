@@ -12,6 +12,7 @@ export function useColors() {
       secondary: PlatformColor('secondaryLabel'),
       separator: PlatformColor('separator'),
       accent: accentColor ?? PlatformColor('systemBlue'),
+      error: PlatformColor('systemRed'),
     };
   }
   // RN views sit outside SwiftUI's local colorScheme environment. Resolve explicit
@@ -24,5 +25,6 @@ export function useColors() {
     secondary: dark ? '#AEAEB2' : '#636366',
     separator: dark ? '#38383A' : '#D1D1D6',
     accent: accentColor ?? (dark ? '#0A84FF' : '#007AFF'),
+    error: dark ? '#FF453A' : '#C3261E',
   };
 }

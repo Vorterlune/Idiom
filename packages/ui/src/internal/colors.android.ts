@@ -15,5 +15,6 @@ export function useColors() {
     secondary: palette.onSurfaceVariant,
     separator: palette.outlineVariant,
     accent: palette.primary,
+    error: palette.error,
   };
 }

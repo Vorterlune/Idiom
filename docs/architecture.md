@@ -5,22 +5,22 @@ Idiom provides one public package, `@idiom/ui`, and an Expo Router showcase. Sha
 ```text
 Application state and navigation
             ↓
-Idiom semantic settings components
+Idiom semantic settings and form components
             ↓
-Expo UI universal primitives + small platform adapters
+Expo UI primitives + React Native input/scroll adapters
             ↓
-       SwiftUI / Compose
+SwiftUI / Compose + React Native controls
 ```
 
 ## Ownership
 
-Applications own controlled values, persistence, permissions, navigation, filtering, safe-area provider setup, and navigation/status-bar appearance. Idiom owns native grouping, semantic icons, row content, controls, layout, accessible labeling, and platform interaction conventions. `IdiomProvider` changes Idiom content appearance without changing global application state. Place it above `Settings.Screen` and standalone controls so their enclosing native hosts receive the selected appearance; a provider inside an existing native subtree does not replace its parent host.
+Applications own controlled values, validation rules and timing, draft state, asynchronous saving, persistence, permissions, navigation, filtering, safe-area provider setup, and navigation/status-bar appearance. Idiom owns native grouping, semantic icons, row and field content, controls, layout, accessible labeling, and platform interaction conventions. `IdiomProvider` changes Idiom content appearance without changing global application state. Place it above `Settings.Screen`, `Form.Screen`, and standalone controls so their enclosing native hosts receive the selected appearance; a provider inside an existing native subtree does not replace its parent host.
 
-Screen owns one bounded vertical native scroll viewport and consumes application-provided safe-area insets. It centers content at a maximum width of 720 logical units. A Screen title is content; a navigation framework is not required. Navigator-owned inset edges can be excluded explicitly.
+Each Screen owns one bounded vertical scroll viewport and consumes application-provided safe-area insets. It centers content at a maximum width of 720 logical units. Settings uses native scrolling; Forms uses React Native scrolling to control focused-input visibility. A Screen title is content; a navigation framework is not required. Navigator-owned inset edges can be excluded explicitly.
 
 ## Universal first, with narrow exceptions
 
-Prefer Expo UI universal components when they meet the semantic contract. Screen and Section use native adapters to preserve ordinary React composition without inspecting child component identities. iOS Toggle uses a labeled native Toggle, rather than placing a switch inside a row that is itself a Button.
+Prefer Expo UI universal components when they meet the semantic contract. Settings Screen and Section use native adapters to preserve ordinary React composition without inspecting child component identities. iOS Toggle uses a labeled native Toggle, rather than placing a switch inside a row that is itself a Button.
 
 Android rows place a measured Compose visual subtree inside a React Native Pressable, hosted back into the native layout through `RNHostView`. That single React Native boundary owns the accessible role, label, hint, disabled state, current value, ripple, and press event. The visual native subtree is hidden from accessibility and pointer events, so the switch and its label do not compete for focus or trigger two changes. This is a scoped fallback for Expo's current Compose semantics surface and must be tested with TalkBack on a device.
 
@@ -30,9 +30,23 @@ Expo UI 57.0.20's [native SwiftUI Picker](https://github.com/expo/expo/blob/sdk-
 
 SearchBar uses React Native TextInput for controlled text and an accessible clear action. EmptyState composes native primitives. For iOS React Native surfaces, system appearance uses semantic `PlatformColor` values; explicitly forced light/dark appearance uses a local color palette because platform colors follow the device appearance. Native SwiftUI descendants receive their appearance through the enclosing host. Android uses Material colors, including dynamic color when available.
 
+## Forms
+
+The public form family contains `Form.Screen`, `Form.Section`, and `Form.TextField`. It is a presentation layer for text, name, and email editing. The application supplies string values and change callbacks, field and form errors, and controlled pending state. There is no field-value store, schema engine, persistence adapter, or dependency on a form library. Values are neither trimmed nor validated by `kind`; it only selects input defaults.
+
+Expo UI's universal TextInput takes `ObservableState<string>`, which native fields update directly. That contract differs from an application-owned React string. Form fields use React Native TextInput through an interactive `RNHostView`, following the controlled-input approach already used by SearchBar. The host takes its width from the native parent and measures its height from one RN root with `matchContents={{ vertical: true }}`. Input, label, description, and error stay together in that root. The input owns focus, text entry, accessibility labeling, disabled state, and test ID. It must not be wrapped in a pressable row or the decorative `NativeSlot`, which suppresses interaction and accessibility.
+
+The screen uses a single React Native ScrollView; non-scrolling Expo layouts provide section presentation and a native button provides submission. The submit button and form error appear at the end of the scrolling content. This is deliberately separate from Settings' SwiftUI Form and Compose scroll layouts. Expo hosts measure their content height and ignore native safe areas; the surrounding screen owns safe areas and keyboard adjustment.
+
+On iOS, the ScrollView adjusts keyboard insets without an additional KeyboardAvoidingView or automatic navigation insets. Android uses the application's normal resize keyboard mode without adding another keyboard-height padding. Focused-field visibility is measured in window coordinates across hosting boundaries, then corrected through the RN ScrollView. Visibility is rechecked when focus, keyboard geometry, viewport size, or content layout changes. Measurements must be ignored after the field blurs or unmounts. Field growth, keyboard transitions, and large text require native verification; mocked layout callbacks cannot establish their correctness.
+
+`submitting` disables all fields and submission. `submitDisabled` affects submission only; field-level `disabled` remains independent. Button presses and the default Done keyboard action use the same guarded submit request. The handler returns void: the application validates, marks a save pending, catches failures, and clears pending state. Idiom does not infer pending state from a returned Promise or hold a lock waiting for the application to enter pending state, since validation may reject synchronously. It does not reset values, clear errors, or navigate.
+
+`returnKeyType` is limited to `next` and `done`, defaulting to `done`. A field's optional `onSubmitEditing` overrides the default screen-submit action. Consumers wire Next to another field's `FormTextFieldRef.focus()`; the ref also exposes `blur()`. The library does not inspect children to determine focus order or automatically focus an invalid field. Labels and current errors are exposed to assistive technology, and changed errors are announced without repeatedly announcing unchanged text. Both screen-reader behavior and keyboard interactions remain device-verification requirements.
+
 ## Native and React Native content
 
-Screen's `header` is an explicit React Native slot above the native scrolling viewport, so it does not need a bridge. Row's `trailing` content uses Expo `RNHostView`, with one React Native root so Yoga can measure it consistently. Display slots must not introduce an independent accessible control inside an interactive row. Include meaningful trailing content in the row's accessible label. Arbitrary React Native wrappers do not belong between native rows and their native layout container.
+Settings Screen's `header` is an explicit React Native slot above the native scrolling viewport, so it does not need a bridge. Row's `trailing` content uses Expo `RNHostView`, with one React Native root so Yoga can measure it consistently. Display slots must not introduce an independent accessible control inside an interactive row. Include meaningful trailing content in the row's accessible label. Arbitrary React Native wrappers do not belong between native rows and their native layout container. Forms provide a separate interactive RN boundary for editable fields; display-only slot rules must not be applied to it.
 
 Fragments, conditional rows, and application wrapper components require no child inspection and must remain supported. Platform adapters must not translate children into metadata arrays based on component identity.
 
@@ -44,4 +58,4 @@ Publish unbundled JavaScript, declarations, and the React Native source entry, w
 
 ## Scope
 
-No custom native modules, persistence layer, state management framework, animation system, navigation integration, web renderer, or advanced theming engine is part of v0.1. Settings establishes whether a semantic application contract can remain small while supporting native presentation and composition.
+No custom native modules, persistence layer, state management framework, animation system, navigation integration, web renderer, or advanced theming engine is part of v0.1. Forms additionally exclude password and multiline inputs, schema validation, automatic field-order discovery, and automatic focus on errors. Settings and Forms keep their application contracts small while supporting native presentation and ordinary React composition.

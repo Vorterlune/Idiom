@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { Edge } from 'react-native-safe-area-context';
 
 export type SemanticIcon =
@@ -83,4 +83,50 @@ export interface EmptyStateProps {
   icon?: SemanticIcon;
   action?: { label: string; onPress: () => void };
   testID?: string;
+}
+
+export interface FormScreenProps {
+  children: ReactNode;
+  submitLabel: string;
+  /** The application validates, sets submitting, and handles any async work. */
+  onSubmit: () => void;
+  title?: string;
+  safeAreaEdges?: readonly Edge[];
+  /** Disables editing and all submission requests. */
+  submitting?: boolean;
+  /** Disables submission without disabling editing. */
+  submitDisabled?: boolean;
+  error?: string;
+  testID?: string;
+}
+
+export interface FormSectionProps {
+  children: ReactNode;
+  title?: string;
+  footer?: string;
+  testID?: string;
+}
+
+export interface FormTextFieldRef {
+  focus: () => void;
+  blur: () => void;
+}
+
+export interface FormTextFieldProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  kind?: 'text' | 'name' | 'email';
+  description?: string;
+  error?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  testID?: string;
+  onBlur?: () => void;
+  /** Overrides the default Done submission; use with Next to focus another field. */
+  onSubmitEditing?: () => void;
+  returnKeyType?: 'next' | 'done';
+  ref?: Ref<FormTextFieldRef>;
 }

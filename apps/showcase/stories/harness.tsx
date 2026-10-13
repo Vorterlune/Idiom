@@ -1,7 +1,8 @@
-import { IdiomProvider, Settings, type IdiomProviderProps } from '@idiom/ui';
+import { Form, IdiomProvider, Settings, type IdiomProviderProps } from '@idiom/ui';
 import type { Decorator } from '@storybook/react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, View, useColorScheme } from 'react-native';
+import { action } from 'storybook/actions';
 
 export type HarnessArgs = {
   appearance: NonNullable<IdiomProviderProps['appearance']>;
@@ -74,6 +75,20 @@ export const inSettingsSection: Decorator = (Story) => (
       <Story />
     </Settings.Section>
   </Settings.Screen>
+);
+
+export const inFormScreen: Decorator = (Story) => (
+  <Form.Screen safeAreaEdges={[]} submitLabel="Save changes" onSubmit={action('onSubmit')}>
+    <Story />
+  </Form.Screen>
+);
+
+export const inFormSection: Decorator = (Story) => (
+  <Form.Screen safeAreaEdges={[]} submitLabel="Save changes" onSubmit={action('onSubmit')}>
+    <Form.Section title="Your account">
+      <Story />
+    </Form.Section>
+  </Form.Screen>
 );
 
 export function Standalone({ children }: { children: ReactNode }) {

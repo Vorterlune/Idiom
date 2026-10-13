@@ -73,17 +73,57 @@ The first Storybook CI runs passed `pnpm check` but failed Expo Doctor's package
 
 With the updated lockfile, frozen installation, peer checks, `pnpm check` (48 component tests and 2 script tests), Expo Doctor (21/21), normal and Storybook iOS/Android exports, and `pnpm verify:package` passed locally. Source maps again confirm normal exports contain zero Storybook/story modules and Storybook exports include all 11 story files. The existing Doctor CI step remains enabled without exclusions or ignored failures.
 
-The native device results above precede this patch alignment. Native builds and interaction checks have not been repeated with the new Expo patches; rebuild development clients before validating this dependency set on devices.
+The native device results above precede this patch alignment. At the time of that record, native builds and interactions had not been repeated with the new Expo patches. The aligned rebuilds and Forms checks are recorded below.
+
+### Forms implementation — 2026-10-14
+
+Environment: macOS, Node 24.21.0, pnpm 11.19.0, Expo 57.0.28, Expo UI 57.0.23, React Native 0.86.3, and React 19.2.3. These checks cover the Forms changes on top of `edc7735`.
+
+| Check                           | Result                                                                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm check`                    | Passed: public/library/showcase/test types, ESLint, formatting, 102 tests across 12 iOS/Android suites, 2 script tests, and package build   |
+| Expo Doctor                     | Passed, 21/21 checks                                                                                                                        |
+| Normal showcase exports         | Passed for iOS and Android                                                                                                                  |
+| Storybook exports               | Passed for iOS and Android, including the three Form story files                                                                            |
+| Clean external package consumer | Installation, public Form imports and ref types, and iOS/Android bundles passed                                                             |
+| Android development build       | Debug APK built and installed on the Medium Phone API 36.1 emulator; development client launched. Forms interaction checks were not reached |
+| iOS development build           | Xcode 27 rebuilt, installed, and launched the aligned client on iPhone 18 Pro/iOS 27; 0 errors and 1 existing Dev Launcher script warning   |
+| Native Forms interactions       | iOS smoke checks passed for the scenarios below; remaining native checks are explicit. Android Forms interactions remain unverified         |
+
+Behavioral coverage includes controlled/rejected/transformed edits, resets, field presets, disabled and pending guards, explicit Next and default Done, focus refs, help/error accessibility properties, error announcement deduplication, appearance forwarding, and ordinary React composition. Focus tests mock native measurements and scroll commands to verify occlusion handling and stale-measurement cancellation; they do not establish actual keyboard layout. Showcase integration tests exercise validation, a single simulated save, updated profile details, retained visibility, and cancellation on unmount.
+
+Local command logs use `/tmp/idiom-forms-*.log`; the clean-consumer receipt is `.artifacts/consumer-verification.json`. These are generated local evidence, not published package content. Native build setup required a targeted CocoaPods update of ExpoModulesCore, ExpoModulesWorklets, and ExpoModulesWorkletsAdapter after the earlier Expo patch alignment; tracked dependency versions were unchanged.
+
+The following checks used the rebuilt iPhone 18 Pro simulator on iOS 27, the normal showcase, and native Form stories. Interactions used the simulator's software keyboard and UI. Accessibility hints were inspected; audible VoiceOver behavior was not tested.
+
+| iOS scenario                     | Observed result                                                                                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Profile layout and text editing  | Fields rendered; software-keyboard insertion and deletion updated the visible value                                                                                               |
+| Next and Done                    | Next focused Email and displayed the email keyboard; Done with an invalid email exposed the validation error and its accessibility hint                                           |
+| Save with keyboard visible       | After correcting the email, the first Save tap updated the Profile details and retained the existing visibility preference                                                        |
+| Pending story                    | Inputs and submit button were disabled, a busy indicator was exposed, and tapping left the values unchanged                                                                       |
+| Long errors                      | Messages wrapped readably and error hints remained available                                                                                                                      |
+| Enlarged text                    | With the system text-size slider at 7, errors wrapped and Save remained reachable by scrolling                                                                                    |
+| System dark appearance           | Form presentation followed the system's dark appearance                                                                                                                           |
+| Parent-driven reset              | Editing the name, then triggering the parent reset, restored the controlled value                                                                                                 |
+| Long form and keyboard dismissal | In the 12-field story, the last field was revealed above the software keyboard and accepted a native key; interactive dragging dismissed the keyboard and Save remained reachable |
+
+Android's native build, installation, and development-client launch passed. A System UI ANR and Expo onboarding blocked smoke testing before reaching Forms. Further Android interaction testing was stopped at the user's request to test only iOS. This is not an Android Forms pass, and the earlier Android settings checks do not establish Forms behavior.
+
+Still unverified natively: populated name/email autofill completion; comprehensive cursor/selection behavior and ignored or transformed change callbacks; actual VoiceOver announcement cadence; tablet and rotation layouts; and repeated keyboard transitions with changing field/error geometry. Android Forms interactions and TalkBack remain unverified. Mocked tests cover several of these contracts but do not replace device evidence.
+
+The repeatable profile smoke flow is `.maestro/forms.yaml`; the checks above are a record of the interactions actually exercised, not a claim that the entire flow or native release matrix passed. Before marking Forms natively verified on each platform, complete the remaining checks and record the device, OS, and result.
 
 ### Native release gates
 
-| Gate              | Required evidence                                                                             | Native status                                         |
-| ----------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Foundation        | Development builds boot on iOS and Android                                                    | Passed 2026-10-13; environments and base commit above |
-| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction | Pending                                               |
-| Complete settings | Link, read-only Value, Picker, working destinations                                           | Pending                                               |
-| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                        | Pending                                               |
-| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                   | Pending native builds                                 |
+| Gate              | Required evidence                                                                                       | Native status                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Foundation        | Development builds boot on iOS and Android                                                              | Passed 2026-10-13; environments and base commit above                            |
+| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction           | Pending                                                                          |
+| Complete settings | Link, read-only Value, Picker, working destinations                                                     | Pending                                                                          |
+| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                                  | Pending                                                                          |
+| Forms             | Controlled text, focus and keyboard layout, validation feedback, submission, and screen-reader behavior | Partial: iOS smoke passed 2026-10-14; remaining checks above; Android unverified |
+| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                             | Pending native builds                                                            |
 
 Before a release, replace pending entries with the date, OS/device, SDK version, commit, and result. Keep failures visible until corrected. A successful Android run does not certify iOS.
 

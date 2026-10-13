@@ -33,6 +33,7 @@ export function useMaterialColors() {
     onSurfaceVariant: '#49454f',
     outlineVariant: '#cac4d0',
     primary: '#6750a4',
+    error: '#b3261e',
   };
 }
 

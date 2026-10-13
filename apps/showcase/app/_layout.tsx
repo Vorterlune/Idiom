@@ -23,6 +23,10 @@ function ShowcaseNavigation() {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ title: 'Profile' }} />
+        <Stack.Screen
+          name="profile-edit"
+          options={{ title: 'Edit profile', headerBackTitle: 'Profile' }}
+        />
         <Stack.Screen name="privacy" options={{ title: 'Privacy' }} />
         <Stack.Screen name="licences" options={{ title: 'Licences' }} />
         <Stack.Screen name="components" options={{ title: 'Component lab' }} />

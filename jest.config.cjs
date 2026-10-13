@@ -2,7 +2,10 @@ const shared = {
   rootDir: __dirname,
   clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
-  testMatch: ['<rootDir>/packages/ui/__tests__/**/*.test.ts?(x)'],
+  testMatch: [
+    '<rootDir>/packages/ui/__tests__/**/*.test.ts?(x)',
+    '<rootDir>/apps/showcase/__tests__/**/*.test.ts?(x)',
+  ],
   moduleNameMapper: {
     '^@idiom/ui$': '<rootDir>/packages/ui/src/index.ts',
     '^@expo/ui$': '<rootDir>/test/universal.tsx',

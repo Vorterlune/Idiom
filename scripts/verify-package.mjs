@@ -122,33 +122,49 @@ write(
 write(
   consumer,
   'App.tsx',
-  `import { useState } from 'react';
+  `import { useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text } from 'react-native';
-import { EmptyState, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
-import type { SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
+import { EmptyState, Form, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
+import type { FormScreenProps, FormSectionProps, FormTextFieldProps, FormTextFieldRef, SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
 
 const options: readonly SettingsPickerOption<'system' | 'dark'>[] = [{label:'System',value:'system'}, {label:'Dark',value:'dark'}];
 function PreferencesSection({ value, onValueChange }: Pick<SettingsToggleProps, 'value' | 'onValueChange'>) {
   return <Settings.Section title="Wrapped section"><><Settings.Toggle label="Wrapped toggle" value={value} onValueChange={onValueChange} /></></Settings.Section>;
 }
 
+function ProfileForm({ onSubmit }: Pick<FormScreenProps, 'onSubmit'>) {
+  const [name, setName] = useState('Alex');
+  const [email, setEmail] = useState('alex@example.com');
+  const emailRef = useRef<FormTextFieldRef>(null);
+  const section: Pick<FormSectionProps, 'title' | 'footer'> = { title: 'Account', footer: 'Your email is private.' };
+  const emailField: Pick<FormTextFieldProps, 'kind' | 'returnKeyType'> = { kind: 'email', returnKeyType: 'done' };
+  return <Form.Screen title="Edit profile" submitLabel="Save changes" onSubmit={onSubmit}>
+    <Form.Section {...section}>
+      <Form.TextField label="Name" kind="name" value={name} onChangeText={setName} returnKeyType="next" onSubmitEditing={() => emailRef.current?.focus()} />
+      <Form.TextField {...emailField} ref={emailRef} label="Email" value={email} onChangeText={setEmail} description="Used for account updates" />
+    </Form.Section>
+  </Form.Screen>;
+}
+
 export default function App() {
   const [enabled, setEnabled] = useState(false);
   const [query, setQuery] = useState('');
   const [appearance, setAppearance] = useState<'system' | 'dark'>('system');
+  const [editing, setEditing] = useState(false);
   return <SafeAreaProvider><IdiomProvider appearance={appearance}>
-    <Settings.Screen title="Consumer" header={<SearchBar value={query} onChangeText={setQuery} />}>
+    {editing ? <ProfileForm onSubmit={() => setEditing(false)} /> : <Settings.Screen title="Consumer" header={<SearchBar value={query} onChangeText={setQuery} />}>
       <Settings.Section title="Preferences">
         <Settings.Toggle icon="notifications" label="Notifications" value={enabled} onValueChange={setEnabled} />
         <Settings.Picker label="Appearance" value={appearance} options={options} onValueChange={setAppearance} />
         <Settings.Link label="Details" onPress={() => setQuery('details')} />
+        <Settings.Link label="Edit profile" onPress={() => setEditing(true)} />
         <Settings.Value label="Version" value="0.1.0" />
         <Settings.Row label="Read only" trailing={<Text>Custom content</Text>} />
       </Settings.Section>
       <PreferencesSection value={enabled} onValueChange={setEnabled} />
       {query ? <EmptyState title="No results" action={{label:'Clear',onPress:() => setQuery('')}} /> : null}
-    </Settings.Screen>
+    </Settings.Screen>}
   </IdiomProvider></SafeAreaProvider>;
 }
 `,

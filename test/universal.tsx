@@ -29,7 +29,12 @@ export function Text(props: Props) {
 
 export function Button(props: Props) {
   return (
-    <View {...props} accessible accessibilityRole="button">
+    <View
+      {...props}
+      accessible
+      accessibilityRole="button"
+      accessibilityState={{ disabled: props.disabled === true }}
+    >
       {props.children ?? <RNText>{props.label}</RNText>}
     </View>
   );

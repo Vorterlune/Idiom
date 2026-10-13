@@ -1,0 +1,49 @@
+appId: ${APP_ID}
+name: Controlled profile form
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- tapOn:
+    id: profile-link
+- tapOn:
+    id: edit-profile-link
+- assertVisible:
+    id: profile-name-input
+- assertVisible:
+    id: profile-email-input
+- tapOn:
+    id: profile-name-input
+- eraseText
+- tapOn:
+    id: profile-email-input
+- eraseText
+- inputText: invalid
+- hideKeyboard
+- tapOn: Save changes
+- assertVisible: Enter your name.
+- assertVisible: Enter a valid email address.
+- tapOn:
+    id: profile-name-input
+- inputText: Taylor Kim
+- tapOn:
+    id: profile-email-input
+- eraseText
+- inputText: taylor@example.com
+- hideKeyboard
+- tapOn: Save changes
+- extendedWaitUntil:
+    visible:
+      id: edit-profile-link
+    timeout: 5000
+- assertVisible: .*Taylor Kim.*
+- assertVisible: .*taylor@example.com.*
+- assertVisible:
+    id: profile-visibility-toggle
+- tapOn:
+    id: edit-profile-link
+- assertVisible: Taylor Kim
+- assertVisible: taylor@example.com

@@ -10,5 +10,6 @@ export function useColors() {
     secondary: dark ? '#AEAEB2' : '#636366',
     separator: dark ? '#38383A' : '#D1D1D6',
     accent: accentColor ?? (dark ? '#0A84FF' : '#007AFF'),
+    error: dark ? '#FF453A' : '#C3261E',
   };
 }

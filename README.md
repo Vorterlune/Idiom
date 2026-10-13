@@ -2,9 +2,9 @@
 
 **One API. Native conventions.**
 
-Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use application components, starting with settings screens. Expo UI supplies the SwiftUI and Jetpack Compose controls; Idiom supplies the layout, semantic icons, labels, and interaction conventions that make them work together as preferences.
+Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use settings screens and editable forms. Expo UI supplies native presentation; Idiom supplies layout, labels, semantic icons, and interaction conventions. Forms use React Native text inputs inside Expo UI presentation to keep ordinary React string values and callbacks.
 
-Describe what a preference means, connect it to your state, and let Idiom handle its platform presentation.
+Describe a preference or editable field, connect it to your state, and let Idiom handle its presentation.
 
 ## Expo UI and Idiom, compared
 
@@ -103,21 +103,75 @@ Expo UI already supports a concise `<Switch label="Notifications" ... />` for a 
 
 ## Why use Idiom?
 
-Use Idiom when you want familiar native settings screens without maintaining the same row composition throughout your app.
+Use Idiom when you want familiar settings and account-editing screens without maintaining the same row and field composition throughout your app.
 
 - **Add a preference with fewer UI decisions.** Supply a label, description, semantic icon, and controlled value. Spacing, secondary text styling, and native hosting already have defaults.
 - **Keep screens consistent as they grow.** Toggle, Picker, Link, and Value share the same row vocabulary. A new section follows the same conventions as the rest of your settings.
 - **Keep platform details in one place.** `icon="notifications"` maps to SF Symbols on iOS and Material Symbols on Android. Platform adapters handle native grouping, controls, and row behavior behind the same public API.
 - **Centralize interaction and accessibility wiring.** Idiom implements combined labels, accessibility hints, disabled guards, and controlled change callbacks. You can still provide explicit accessibility labels and hints. Native behavior remains subject to the [device verification matrix](docs/verification.md).
 - **Read and review the feature logic directly.** A preference declares what it changes and which handler runs. Reviewers can focus on state updates and side effects without following a tree of layout primitives for each row.
+- **Add editing without adopting another form engine.** `Form.TextField` uses a string `value` and `onChangeText`. Keep your existing state or form library; Idiom presents labels, errors, keyboard behavior, and pending submission while your application validates and saves.
+
+## Editable forms: Expo UI and Idiom
+
+Expo UI's native text input uses an observable value created with `useNativeState`. This focused example edits a name and hands its current value to the application:
+
+```tsx
+import { Button, FieldGroup, Host, Text, TextInput, useNativeState } from '@expo/ui';
+
+export function EditName({ onSave }: { onSave: (name: string) => void }) {
+  const name = useNativeState('Alex Morgan');
+
+  return (
+    <Host style={{ flex: 1 }}>
+      <FieldGroup>
+        <FieldGroup.Section title="Your account">
+          <Text>Name</Text>
+          <TextInput value={name} autoCapitalize="words" autoComplete="name" />
+          <Button label="Save changes" onPress={() => onSave(name.value)} />
+        </FieldGroup.Section>
+      </FieldGroup>
+    </Host>
+  );
+}
+```
+
+With Idiom, the application keeps a regular React string. `Form.Screen` also supplies the screen, safe-area handling, scrolling, and submit presentation:
+
+```tsx
+import { useState } from 'react';
+import { Form } from '@idiom/ui';
+
+export function EditName({ onSave }: { onSave: (name: string) => void }) {
+  const [name, setName] = useState('Alex Morgan');
+
+  return (
+    <Form.Screen title="Edit profile" submitLabel="Save changes" onSubmit={() => onSave(name)}>
+      <Form.Section title="Your account">
+        <Form.TextField
+          kind="name"
+          label="Name"
+          description="The name other members see."
+          value={name}
+          onChangeText={setName}
+        />
+      </Form.Section>
+    </Form.Screen>
+  );
+}
+```
+
+These examples use different input models. Idiom does not convert Expo's observable input into a controlled React field: it hosts a React Native `TextInput` through Expo's `RNHostView`. Expo UI still supplies the section layout and native submit button. Direct Expo UI is a good choice when you want its native input model; Idiom is useful when you want string values, field errors, and screen behavior that fit existing React application code. Native input styling and behavior therefore differ between the examples.
+
+Pass each field's validation message as `error`. Pass a save failure as `Form.Screen`'s `error`, and bind `submitting` to your application's pending state. Validation rules, when errors appear, saving, and success navigation remain application code; neither example implements those policies for you.
 
 ## How it fits your development workflow
 
-Start with one settings screen in your existing Expo app. Keep your hooks, state store, persistence, permission handling, and router. Pass their values and callbacks into Idiom; a notification toggle still needs your application logic to request permission, save the preference, or call a server.
+Start with one settings or profile-editing screen in your existing Expo app. Keep your hooks, state store, form library, persistence, permission handling, and router. Pass their values and callbacks into Idiom; a notification toggle still needs your application logic to request permission, save the preference, or call a server.
 
 Use `IdiomProvider` when you need appearance or accent overrides. Compose reusable sections with ordinary React components, fragments, and conditional children. For custom React Native content, use the screen's `header` slot or a row's display-only `trailing` slot; see [composition and custom content](#composition-and-custom-content). The native Storybook catalogue lets you explore props, events, and appearance while developing.
 
-Keep using Expo UI directly for screens that need custom layouts or controls outside Idiom's current patterns. Idiom is a good fit when its native defaults match your product; direct primitives give you more control when they do not. The tradeoff is an extra dependency and a deliberately small styling API. The current scope is iOS and Android settings, plus `SearchBar` and `EmptyState`; package availability and validation status are below.
+Keep using Expo UI directly for screens that need custom layouts or controls outside Idiom's current patterns. Idiom is a good fit when its defaults match your product; direct primitives give you more control when they do not. The tradeoff is an extra dependency and a deliberately small styling API. The current scope is iOS and Android settings, text/name/email forms, `SearchBar`, and `EmptyState`; package availability and validation status are below.
 
 ## Status
 
@@ -185,7 +239,7 @@ Consult `packages/ui/package.json` for the exact supported peer ranges and addit
 
 SDK 57 consumers building with Xcode 27 for iOS 27 must also enable `ios.enableSceneSupport` through `expo-build-properties`, then regenerate and rebuild their native app. The showcase already includes this setting. See [native setup](CONTRIBUTING.md#setup) and [Expo's guidance](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md#staying-on-sdk-57-with-xcode-27).
 
-Place **one application-owned safe-area provider** above your screens. `IdiomProvider` is optional; put it **above `Settings.Screen`** and any standalone SearchBar or EmptyState so the enclosing native hosts receive the selected appearance. It applies appearance and accent overrides to Idiom content, while the application continues to own its navigation and status bar appearance.
+Place **one application-owned safe-area provider** above your screens. `IdiomProvider` is optional; put it **above `Settings.Screen` or `Form.Screen`** and any standalone SearchBar or EmptyState so the enclosing native hosts receive the selected appearance. It applies appearance and accent overrides to Idiom content, while the application continues to own its navigation and status bar appearance.
 
 ```tsx
 import { IdiomProvider } from '@idiom/ui';
@@ -208,18 +262,21 @@ Idiom never inserts a safe-area provider implicitly. A screen below a navigator 
 
 Import all public components and types from `@idiom/ui`. No native adapter or renderer selection is exposed.
 
-| Component          | Purpose and main props                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `IdiomProvider`    | `appearance`: `system`, `light`, or `dark`; optional `accentColor`. System appearance is the default.               |
-| `Settings.Screen`  | Owns scrolling and tablet content width. `title`, React Native `header` slot, `safeAreaEdges`, and `children`.      |
-| `Settings.Section` | Groups semantic children with optional `title` and `footer`.                                                        |
-| `Settings.Row`     | `label`, `description`, semantic `icon`, display-only React Native `trailing` slot, `disabled`, optional `onPress`. |
-| `Settings.Toggle`  | Row content plus controlled boolean `value` and `onValueChange`.                                                    |
-| `Settings.Link`    | Row content and required `onPress`, with a native navigation affordance.                                            |
-| `Settings.Value`   | Row content and a read-only string `value`.                                                                         |
-| `Settings.Picker`  | Controlled string `value`, readonly `{ label, value }` `options`, and `onValueChange`.                              |
-| `SearchBar`        | Controlled `value`/`onChangeText`, `placeholder`, `disabled`, optional `onSubmit`, and accessible clear action.     |
-| `EmptyState`       | `title`, optional `description`/`icon`, and optional `action: { label, onPress }`.                                  |
+| Component          | Purpose and main props                                                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `IdiomProvider`    | `appearance`: `system`, `light`, or `dark`; optional `accentColor`. System appearance is the default.                                   |
+| `Settings.Screen`  | Owns scrolling and tablet content width. `title`, React Native `header` slot, `safeAreaEdges`, and `children`.                          |
+| `Settings.Section` | Groups semantic children with optional `title` and `footer`.                                                                            |
+| `Settings.Row`     | `label`, `description`, semantic `icon`, display-only React Native `trailing` slot, `disabled`, optional `onPress`.                     |
+| `Settings.Toggle`  | Row content plus controlled boolean `value` and `onValueChange`.                                                                        |
+| `Settings.Link`    | Row content and required `onPress`, with a native navigation affordance.                                                                |
+| `Settings.Value`   | Row content and a read-only string `value`.                                                                                             |
+| `Settings.Picker`  | Controlled string `value`, readonly `{ label, value }` `options`, and `onValueChange`.                                                  |
+| `Form.Screen`      | `onSubmit`, `submitLabel`, controlled `submitting`, `submitDisabled`, form `error`, `title`, and `safeAreaEdges`.                       |
+| `Form.Section`     | Groups editable fields with optional `title` and `footer`.                                                                              |
+| `Form.TextField`   | String `value`/`onChangeText`, `label`, `kind`: `text`, `name`, or `email`; optional `description`, `error`, `disabled`, and focus ref. |
+| `SearchBar`        | Controlled `value`/`onChangeText`, `placeholder`, `disabled`, optional `onSubmit`, and accessible clear action.                         |
+| `EmptyState`       | `title`, optional `description`/`icon`, and optional `action: { label, onPress }`.                                                      |
 
 Interactive components expose accessibility labels/hints and `testID`. The styling surface is intentionally small: system typography, semantic colors, native controls, and platform touch targets are part of the component contract.
 
@@ -240,6 +297,49 @@ const options = [
 
 Picker option values must be unique and include the controlled value. Toggle and picker callbacks request an actual change; application code commits it by updating `value`. The picker label and selected-choice indicator continue to reflect `value` if the application ignores or delays a callback. A disabled control does not activate, and cancelling a picker leaves state unchanged. Application code owns persistence, filtering, permissions, and side effects.
 
+### Form state, submission, and focus
+
+`Form.TextField` defaults to `kind="text"`. `name` and `email` select appropriate capitalization, keyboard, and autofill defaults; they do not validate or transform the string. `description` supplies help text, and `error` displays the application's current validation message. `onBlur` supports validation on leaving a field.
+
+`Form.Screen` calls `onSubmit` as a request. Validate in that handler, set `submitting` before starting an asynchronous save, handle failures, and clear pending state when the attempt finishes. `submitting` disables every field and submission and shows a progress indicator; `submitDisabled` disables submission while leaving fields editable. Idiom does not await the callback, infer pending state, reset values, clear errors, or navigate after saving. A disabled or pending form does not submit through either the button or keyboard.
+
+The default `returnKeyType="done"` requests screen submission unless `onSubmitEditing` overrides it. Use `returnKeyType="next"` with an explicit focus callback to move between fields:
+
+```tsx
+import { useRef, useState } from 'react';
+import { Form, type FormTextFieldRef } from '@idiom/ui';
+
+function AccountFields() {
+  const [name, setName] = useState('Alex Morgan');
+  const [email, setEmail] = useState('alex@example.com');
+  const emailRef = useRef<FormTextFieldRef>(null);
+
+  return (
+    <Form.Section title="Your account">
+      <Form.TextField
+        kind="name"
+        label="Name"
+        value={name}
+        onChangeText={setName}
+        returnKeyType="next"
+        onSubmitEditing={() => emailRef.current?.focus()}
+      />
+      <Form.TextField
+        ref={emailRef}
+        kind="email"
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+      />
+    </Form.Section>
+  );
+}
+```
+
+Render the section inside `Form.Screen`; in a saved form, lift the draft state into the component that handles submission. The ref exposes `focus()` and `blur()`. Next does not discover or reorder fields. Forms preserve fragments, conditional fields, and application wrapper components without inspecting their identities.
+
+Forms own one React Native scroll viewport and reveal the focused input when the keyboard or field layout changes. They use iOS keyboard inset adjustment and Android's normal window resize behavior; Android consumers should retain Expo's resize keyboard layout mode. Do not nest `Form.Screen` inside another vertical scroll view. The submit button stays at the end of the form, rather than in a sticky footer. Passwords, multiline fields, schema validation, and automatic focus on the first error are outside the initial form API.
+
 ### Composition and custom content
 
 Fragments, conditional children, and components returning Idiom components are supported:
@@ -255,13 +355,14 @@ function NotificationPreferences() {
 }
 ```
 
-Native layouts and React Native layouts have different hosting rules. Place ordinary React Native views in Screen's `header` or Row's `trailing` slot. The header renders directly in React Native above the native scroll viewport; trailing content crosses into the native row through Expo's `RNHostView`, with a single measured root. Avoid arbitrary `View` wrappers around native sections or rows. A trailing slot is display content; include meaningful badge text in the row's `accessibilityLabel`, and use Toggle or Picker for interactive trailing controls. Screen owns the vertical scroll viewport; do not put it inside another vertical ScrollView.
+Native layouts and React Native layouts have different hosting rules. Place ordinary React Native views in `Settings.Screen`'s `header` or `Settings.Row`'s `trailing` slot. The header renders directly in React Native above the native scroll viewport; trailing content crosses into the native row through Expo's `RNHostView`, with a single measured root. Avoid arbitrary `View` wrappers around native sections or rows. A trailing slot is display content; include meaningful badge text in the row's `accessibilityLabel`, and use Toggle or Picker for interactive trailing controls. `Settings.Screen` owns the vertical scroll viewport; do not put it inside another vertical ScrollView. Form fields use their own interactive hosting boundary and do not use a display-only trailing slot.
 
 ### Platform behavior
 
 | Area               | iOS                                            | Android                                               |
 | ------------------ | ---------------------------------------------- | ----------------------------------------------------- |
-| Grouping           | SwiftUI Form and Section                       | Compose scrolling and grouped preference rows         |
+| Settings grouping  | SwiftUI Form and Section                       | Compose scrolling and grouped preference rows         |
+| Editable forms     | RN scroll/input, Expo UI section presentation  | RN scroll/input, Expo UI section presentation         |
 | Boolean preference | Native labeled Toggle                          | Material preference row with native Switch            |
 | Selection          | Native menu selection                          | Native Material selection                             |
 | Icons              | System SF Symbols                              | Material Symbols                                      |

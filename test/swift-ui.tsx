@@ -67,6 +67,18 @@ export const Alert = Object.assign(
   },
 );
 
+// A native presentation boundary; it does not model event ordering or callback guards.
+export const ConfirmationDialog = Object.assign(
+  function NativeConfirmationDialog(props: Parameters<typeof Alert>[0]) {
+    return <Alert {...props} />;
+  },
+  {
+    Trigger: container('ConfirmationDialog.Trigger'),
+    Actions: container('ConfirmationDialog.Actions'),
+    Message: container('ConfirmationDialog.Message'),
+  },
+);
+
 export function Text(props: Props) {
   return (
     <RNText {...props} {...swiftAccessibility(props.modifiers)}>

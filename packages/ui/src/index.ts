@@ -31,7 +31,10 @@ export { EmptyState } from './EmptyState';
 export { SearchBar } from './SearchBar';
 export { IdiomProvider } from './provider';
 export { ConfirmationDialog } from './confirmation/ConfirmationDialog';
+export { ActionSheet } from './actions/ActionSheet';
 export type {
+  ActionSheetAction,
+  ActionSheetProps,
   ConfirmationDialogProps,
   FormScreenProps,
   FormSectionProps,

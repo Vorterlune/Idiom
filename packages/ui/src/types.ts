@@ -1,4 +1,5 @@
-import type { ReactNode, Ref } from 'react';
+import type { ReactNode, Ref, RefObject } from 'react';
+import type { View } from 'react-native';
 import type { Edge } from 'react-native-safe-area-context';
 
 export type SemanticIcon =
@@ -142,5 +143,28 @@ export interface ConfirmationDialogProps {
   message?: string;
   cancelLabel?: string;
   destructive?: boolean;
+  testID?: string;
+}
+
+export interface ActionSheetAction {
+  /** Unique within this sheet; retained when labels or handlers change. */
+  id: string;
+  label: string;
+  /** Runs once after requesting closure. The application handles any async work. */
+  onPress: () => void;
+  destructive?: boolean;
+  disabled?: boolean;
+}
+
+export interface ActionSheetProps {
+  open: boolean;
+  /** Accept closure by setting open to false. A false-to-true transition reopens. */
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  actions: readonly ActionSheetAction[];
+  /** Mounted, measurable RN trigger (for example, a Pressable). Used for iOS popover anchoring. */
+  anchorRef: RefObject<View | null>;
+  message?: string;
+  cancelLabel?: string;
   testID?: string;
 }

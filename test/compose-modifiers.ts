@@ -16,3 +16,4 @@ export const selectableGroup = modifier('selectableGroup');
 export const toggleable = modifier('toggleable');
 export const menuAnchor = modifier('menuAnchor');
 export const testID = modifier('testID');
+export const verticalScroll = modifier('verticalScroll');

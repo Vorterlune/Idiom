@@ -124,9 +124,9 @@ write(
   'App.tsx',
   `import { useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Text } from 'react-native';
-import { ConfirmationDialog, EmptyState, Form, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
-import type { ConfirmationDialogProps, FormScreenProps, FormSectionProps, FormTextFieldProps, FormTextFieldRef, SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
+import { Pressable, Text, View } from 'react-native';
+import { ActionSheet, ConfirmationDialog, EmptyState, Form, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
+import type { ActionSheetAction, ActionSheetProps, ConfirmationDialogProps, FormScreenProps, FormSectionProps, FormTextFieldProps, FormTextFieldRef, SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
 
 const options: readonly SettingsPickerOption<'system' | 'dark'>[] = [{label:'System',value:'system'}, {label:'Dark',value:'dark'}];
 function PreferencesSection({ value, onValueChange }: Pick<SettingsToggleProps, 'value' | 'onValueChange'>) {
@@ -153,9 +153,13 @@ export default function App() {
   const [appearance, setAppearance] = useState<'system' | 'dark'>('system');
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const anchorRef = useRef<View>(null);
+  const actionSheet: Pick<ActionSheetProps, 'title'> = { title: 'Account actions' };
+  const editAction: ActionSheetAction = { id: 'edit', label: 'Edit profile', onPress: () => setEditing(true) };
   const confirmation: Pick<ConfirmationDialogProps, 'title' | 'confirmLabel'> = { title: 'Reset preference?', confirmLabel: 'Reset' };
   return <SafeAreaProvider><IdiomProvider appearance={appearance}>
-    {editing ? <ProfileForm onSubmit={() => setEditing(false)} /> : <Settings.Screen title="Consumer" header={<SearchBar value={query} onChangeText={setQuery} />}>
+    {editing ? <ProfileForm onSubmit={() => setEditing(false)} /> : <Settings.Screen title="Consumer" header={<View><SearchBar value={query} onChangeText={setQuery} /><Pressable ref={anchorRef} collapsable={false} accessibilityRole="button" onPress={() => setActionsOpen(true)}><Text>Account actions</Text></Pressable></View>}>
       <Settings.Section title="Preferences">
         <Settings.Toggle icon="notifications" label="Notifications" value={enabled} onValueChange={setEnabled} />
         <Settings.Picker label="Appearance" value={appearance} options={options} onValueChange={setAppearance} />
@@ -169,6 +173,7 @@ export default function App() {
       {query ? <EmptyState title="No results" action={{label:'Clear',onPress:() => setQuery('')}} /> : null}
     </Settings.Screen>}
     <ConfirmationDialog {...confirmation} open={confirming} onOpenChange={setConfirming} onConfirm={() => setEnabled(false)} destructive />
+    <ActionSheet {...actionSheet} open={actionsOpen} onOpenChange={setActionsOpen} anchorRef={anchorRef} actions={[editAction, { id: 'disable', label: 'Disable notifications', onPress: () => setEnabled(false), destructive: true }]} />
   </IdiomProvider></SafeAreaProvider>;
 }
 `,

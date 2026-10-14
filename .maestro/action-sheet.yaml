@@ -1,0 +1,42 @@
+appId: ${APP_ID}
+name: Profile action choices
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- tapOn:
+    id: profile-link
+- tapOn:
+    id: profile-actions-trigger
+- assertVisible: Edit profile
+- runFlow:
+    when:
+      visible: Cancel
+    commands:
+      - tapOn: Cancel
+# iOS 27 can use a popover without a visible Cancel action, including on iPhone.
+- runFlow:
+    when:
+      platform: iOS
+      notVisible:
+        id: profile-actions-trigger
+    commands:
+      - tapOn:
+          point: 50%,85%
+- assertVisible:
+    id: profile-actions-trigger
+- tapOn:
+    id: profile-actions-trigger
+- tapOn: Show profile in directory
+- tapOn:
+    id: profile-actions-trigger
+- assertVisible: Hide profile from directory
+- tapOn: Hide profile from directory
+- tapOn:
+    id: profile-actions-trigger
+- tapOn: Edit profile
+- assertVisible:
+    id: profile-name-input

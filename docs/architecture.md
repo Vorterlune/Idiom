@@ -54,6 +54,16 @@ The application accepts user closure by updating `open` and owns all subsequent 
 
 The iOS 27/Expo UI 57.0.23 native check found that a provider-only dark override does not change the system alert surface, although device appearance and accent changes work. Expo's preferred-color-scheme modifier on the Alert and Host, including presentation after anchor layout, did not correct it. Those ineffective workarounds are not retained. The wrapper does not change global application appearance to compensate; this requirement remains unresolved and is recorded in the verification log.
 
+## Action sheets
+
+`ActionSheet` presents application-supplied action objects with stable IDs and per-action callbacks. It uses SwiftUI ConfirmationDialog on iOS and Compose ModalBottomSheet on Android. Text labels, optional message, cancellation, disabled guards, and destructive roles stay behind one controlled interface. iOS may reorder role-bearing actions and presents an anchored popover in regular size classes; Android retains the supplied order and scrolls overflow.
+
+Applications own the existing accessible RN trigger and pass its measurable `anchorRef`. The iOS adapter measures the trigger and its own non-collapsable overlay origin in the same native window, subtracts those coordinates, and places an inaccessible native anchor over the trigger. Layout and window-size changes invalidate old measurements. Missing or zero-size measurements suppress presentation with a development warning. Use a Pressable ref in the Settings Screen header; arbitrary RN wrappers around native rows are not supported.
+
+Each false-to-true transition creates a fresh presentation. Selection resolves once, requests closure, then invokes the latest enabled action handler. Native dismissal waits one animation frame for a queued selection. Cancellation emits only closure; prop-driven closure emits nothing. Resolved presentations remain closed if closure is ignored. Android retains its native view until the hide animation promise settles, and cleanup invalidates stale completion when reopening or unmounting. This internal animation promise does not represent the application's action lifecycle.
+
+Provider appearance and accent preferences reach each native Host. System appearance, native modal accessibility, and trigger-focus restoration require device verification. There is no action queue, arbitrary content slot, icon contract, or nested-modal coordinator.
+
 ## Native and React Native content
 
 Settings Screen's `header` is an explicit React Native slot above the native scrolling viewport, so it does not need a bridge. Row's `trailing` content uses Expo `RNHostView`, with one React Native root so Yoga can measure it consistently. Display slots must not introduce an independent accessible control inside an interactive row. Include meaningful trailing content in the row's accessible label. Arbitrary React Native wrappers do not belong between native rows and their native layout container. Forms provide a separate interactive RN boundary for editable fields; display-only slot rules must not be applied to it.

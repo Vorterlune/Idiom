@@ -31,6 +31,7 @@ export default defineConfig({
             { label: 'Settings', slug: 'docs/components/settings' },
             { label: 'Forms', slug: 'docs/components/forms' },
             { label: 'ConfirmationDialog', slug: 'docs/components/confirmation-dialog' },
+            { label: 'ActionSheet', slug: 'docs/components/action-sheet' },
             { label: 'SearchBar & EmptyState', slug: 'docs/components/search-and-empty-state' },
           ],
         },

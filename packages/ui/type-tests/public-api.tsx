@@ -1,4 +1,5 @@
 import { createRef } from 'react';
+import type { View } from 'react-native';
 
 import {
   Settings,
@@ -7,6 +8,9 @@ import {
   IdiomProvider,
   Form,
   ConfirmationDialog,
+  ActionSheet,
+  type ActionSheetProps,
+  type ActionSheetAction,
   type ConfirmationDialogProps,
   type FormScreenProps,
   type FormSectionProps,
@@ -196,3 +200,31 @@ export const confirmationWithoutClosure = (
 export const invalidConfirmationOpen: ConfirmationDialogProps['open'] = 'yes';
 // @ts-expect-error Dialog content is limited to title and message strings.
 export const arbitraryConfirmationContent: ConfirmationDialogProps['children'] = <></>;
+
+const editAction: ActionSheetAction = {
+  id: 'edit',
+  label: 'Edit profile',
+  onPress: () => {},
+  disabled: false,
+  destructive: false,
+};
+const actionSheet: ActionSheetProps = {
+  open: true,
+  onOpenChange: () => {},
+  title: 'Profile actions',
+  anchorRef: createRef<View>(),
+  actions: [editAction],
+  message: 'Choose an action.',
+  cancelLabel: 'Keep profile',
+  testID: 'actions',
+};
+export const publicActionSheetExample = <ActionSheet {...actionSheet} />;
+
+// @ts-expect-error Each action requires its application-owned callback.
+export const actionWithoutHandler: ActionSheetAction = { id: 'edit', label: 'Edit profile' };
+export const actionSheetWithoutAnchor = (
+  // @ts-expect-error The existing trigger must supply a measurable native view reference.
+  <ActionSheet open title="Profile" actions={[editAction]} onOpenChange={() => {}} />
+);
+// @ts-expect-error V1 actions use text labels rather than arbitrary rendered content.
+export const renderedActionLabel: ActionSheetAction['label'] = <></>;

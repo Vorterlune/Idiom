@@ -1,13 +1,23 @@
-import type { ReactNode } from 'react';
-import { createElement } from 'react';
+import type { ReactNode, Ref } from 'react';
+import { createElement, useImperativeHandle } from 'react';
 import { Text as RNText, View } from 'react-native';
 import type { TestModifier } from './native-modifier';
 
-type Props = { children?: ReactNode; text?: string; [key: string]: unknown };
+type Props = {
+  children?: ReactNode;
+  text?: string;
+  modifiers?: readonly TestModifier[];
+  [key: string]: unknown;
+};
 
 const container = (name: string) => {
   function NativeContainer(props: Props) {
-    return createElement(View, props, props.children);
+    const testID = props.modifiers?.find((item) => item.name === 'testID')?.args[0];
+    return createElement(
+      View,
+      { ...props, ...(typeof testID === 'string' ? { testID } : {}) },
+      props.children,
+    );
   }
   NativeContainer.displayName = name;
   return NativeContainer;
@@ -110,12 +120,19 @@ export function TextButton(
       {...props}
       accessible
       accessibilityRole="button"
+      accessibilityState={{ disabled: props.enabled === false }}
       {...{ onPress: props.onClick }}
       {...(typeof testID === 'string' ? { testID } : {})}
     >
       {props.children}
     </View>
   );
+}
+
+export function ModalBottomSheet(props: Props & { ref?: Ref<{ hide: () => Promise<void> }> }) {
+  const { ref, ...nativeProps } = props;
+  useImperativeHandle(ref, () => ({ hide: () => Promise.resolve() }), []);
+  return <View {...nativeProps}>{props.children}</View>;
 }
 
 export function Text(props: Props) {

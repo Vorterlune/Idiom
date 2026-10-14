@@ -93,4 +93,8 @@ Resetting preferences adds a shared application decision: explain the consequenc
 
 Native alerts close when a choice is made, so the application must accept `onOpenChange(false)`. Confirm then requests the application action once; there is no inferred async lifecycle or global dialog queue. An ignored closure does not reopen on unrelated renders. The showcase resets preference defaults while retaining the edited profile; the reset policy lives in application state.
 
-Settings, editable forms, and confirmations are application patterns, rather than aliases for every Expo primitive. Further additions should continue to follow real consumer needs.
+## Action choices
+
+`ActionSheet` extends the Profile workflow with Edit profile and Show/Hide directory actions. Consumers provide stable action IDs, labels, and handlers, while Idiom centralizes native action/dialog composition, Android scrolling and hide animation, iOS trigger measurement and tablet popover positioning, destructive roles, disabled guards, cancellation, and duplicate-event handling. Applications keep navigation, asynchronous work, and further confirmation policies. Native accessibility, appearance, and focus restoration remain verification requirements.
+
+Settings, editable forms, confirmations, and action choices are application patterns, rather than aliases for every Expo primitive. Further additions should continue to follow real consumer needs.

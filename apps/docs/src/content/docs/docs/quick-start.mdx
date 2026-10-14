@@ -1,0 +1,124 @@
+---
+title: Quick start
+description: Build your first native settings screen with Idiom and Expo.
+---
+
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components';
+
+Add a native preference screen to an existing Expo application. Your application keeps ownership of values, navigation, and persistence.
+
+:::note[Before you start]
+Idiom’s v0.1 implementation is available in this repository; `@idiom/ui` has not been published to npm. This guide uses a local package tarball. The supported targets are iOS and Android in an Expo development build.
+:::
+
+## 1. Build the package
+
+Use Node 24 and the pnpm version pinned in the repository:
+
+```sh title="In the Idiom repository"
+git clone https://github.com/Vorterlune/Idiom.git
+cd Idiom
+corepack enable
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --filter @idiom/ui pack
+```
+
+The pack command prints the path to `idiom-ui-0.1.0.tgz`. Keep that absolute path for the next step.
+
+## 2. Install in your Expo app
+
+Use Expo’s installer for the native peers. The application must use the package’s supported Expo SDK 57, React 19.2.3, and React Native 0.86 versions; see [installation](/Idiom/docs/installation/) for the exact peer ranges.
+
+```sh title="In your consuming Expo application"
+npx expo install @expo/ui react-native-safe-area-context
+```
+
+<Tabs syncKey="package-manager">
+  <TabItem label="npm">
+    <Code code="npm install /absolute/path/to/idiom-ui-0.1.0.tgz" lang="sh" />
+  </TabItem>
+  <TabItem label="pnpm">
+    <Code code="pnpm add /absolute/path/to/idiom-ui-0.1.0.tgz" lang="sh" />
+  </TabItem>
+  <TabItem label="Yarn">
+    <Code code="yarn add file:/absolute/path/to/idiom-ui-0.1.0.tgz" lang="sh" />
+  </TabItem>
+</Tabs>
+
+Replace the example path with the tarball path printed by `pack`. Rebuild your native development client after adding native dependencies.
+
+:::tip[Xcode 27 and iOS 27]
+Expo SDK 57 consumers also need `ios.enableSceneSupport` through `expo-build-properties`. Follow the [native setup instructions](/Idiom/docs/installation/#native-development-build).
+:::
+
+## 3. Set up the application root
+
+Place one application-owned safe-area provider above your screens. `IdiomProvider` is optional; use it for appearance and accent preferences.
+
+```tsx title="App.tsx"
+import { IdiomProvider } from '@idiom/ui';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Preferences } from './Preferences';
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <IdiomProvider appearance="system">
+        <Preferences />
+      </IdiomProvider>
+    </SafeAreaProvider>
+  );
+}
+```
+
+## 4. Add your first preference
+
+```tsx title="Preferences.tsx"
+import { useState } from 'react';
+import { Settings } from '@idiom/ui';
+
+export function Preferences() {
+  const [notifications, setNotifications] = useState(true);
+
+  return (
+    <Settings.Screen title="Settings">
+      <Settings.Section title="Preferences">
+        <Settings.Toggle
+          icon="notifications"
+          label="Notifications"
+          description="Receive important updates"
+          value={notifications}
+          onValueChange={setNotifications}
+        />
+      </Settings.Section>
+    </Settings.Screen>
+  );
+}
+```
+
+`Settings.Screen` owns the title, host, scrolling, safe-area view, and tablet width. `Settings.Toggle` owns the icon mapping, richer row composition, and native interaction. The `value` and callback remain ordinary React props.
+
+This example updates local state. Requesting notification permissions, saving preferences, and contacting a server remain application work.
+
+## 5. Run on a native device
+
+Start the consuming app’s development build using its Expo scripts. To explore Idiom directly from the repository:
+
+<Tabs syncKey="platform">
+  <TabItem label="iOS">
+    <Code code="pnpm ios" lang="sh" />
+    Requires macOS and Xcode.
+  </TabItem>
+  <TabItem label="Android">
+    <Code code="pnpm android" lang="sh" />
+    Requires an Android SDK, compatible Java runtime, and a device or emulator.
+  </TabItem>
+</Tabs>
+
+## What to build next
+
+- [Settings](/Idiom/docs/components/settings/): pickers, destinations, and read-only values.
+- [Forms](/Idiom/docs/components/forms/): controlled fields and application-owned validation.
+- [ConfirmationDialog](/Idiom/docs/components/confirmation-dialog/): a native Confirm/Cancel decision.
+- [Showcase and Storybook](/Idiom/docs/guides/showcase-and-storybook/): explore real native controls.

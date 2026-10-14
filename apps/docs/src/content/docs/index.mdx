@@ -1,0 +1,79 @@
+---
+title: Idiom
+description: Native settings, editable forms, and confirmations for your Expo application.
+template: splash
+hero:
+  tagline: One API. Native conventions.
+  actions:
+    - text: Start building
+      link: /Idiom/docs/quick-start/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/Vorterlune/Idiom
+      variant: secondary
+      icon: external
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Idiom is an opinionated wrapper around Expo UI for React Native. Describe your application’s intent; Idiom handles the native composition, labels, and interaction conventions.
+
+<CardGrid>
+  <Card title="Settings that belong on the platform" icon="setting">
+    Group preferences into sections, with native toggles, pickers, links, and read-only values.
+  </Card>
+  <Card title="Forms with ordinary React state" icon="pencil">
+    Keep string values, validation, and saving in your application. Get labels, errors, focus, and
+    submit feedback.
+  </Card>
+  <Card title="One clear decision" icon="approve-check">
+    Confirm or cancel with a native dialog. Idiom guards repeated events; your application owns the
+    action.
+  </Card>
+  <Card title="Your existing development flow" icon="code">
+    Keep your router, state store, and persistence. Explore the real native components in the
+    showcase and Storybook.
+  </Card>
+</CardGrid>
+
+## A preference, in one place
+
+```tsx title="Preferences.tsx"
+import { useState } from 'react';
+import { Settings } from '@idiom/ui';
+
+export function Preferences() {
+  const [notifications, setNotifications] = useState(true);
+
+  return (
+    <Settings.Screen title="Settings">
+      <Settings.Section title="Preferences">
+        <Settings.Toggle
+          icon="notifications"
+          label="Notifications"
+          description="Receive important updates"
+          value={notifications}
+          onValueChange={setNotifications}
+        />
+      </Settings.Section>
+    </Settings.Screen>
+  );
+}
+```
+
+:::note[Current status]
+The v0.1 package is not yet published to npm. Use a local tarball or the repository’s showcase. Idiom targets iOS and Android development builds; these docs do not provide a web renderer for the native components.
+:::
+
+<CardGrid>
+  <LinkCard
+    title="Quick start"
+    description="Install the package and build your first settings screen."
+    href="/Idiom/docs/quick-start/"
+  />
+  <LinkCard
+    title="Compare with Expo UI"
+    description="See what Idiom owns and what stays in your application."
+    href="/Idiom/docs/guides/expo-comparison/"
+  />
+</CardGrid>

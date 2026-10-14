@@ -152,6 +152,14 @@ The iOS system alert does not expose the forwarded dialog/button `testID` values
 
 Still unresolved: provider-only iOS appearance overrides. Still unverified: complete VoiceOver gesture/speech behavior and trigger-focus restoration, rotation, physical-device behavior, and the broader native matrix. Android interactions and TalkBack remain deferred. These gaps prevent marking ConfirmationDialog fully natively verified despite passing JavaScript contracts and bundle checks.
 
+### Documentation website — 2026-10-14
+
+The documentation website in `apps/docs` uses Astro 7.3.8 and Starlight 0.42.6, with a GitHub Pages base path of `/Idiom/`. It provides quick start, installation, component guides, static search, highlighted/copyable code, package-manager tabs, sidebar navigation, page outlines, and light/dark appearance. Comparisons, public types, architecture, semantic-layer guidance, and this record are synchronized from repository sources before each build. The website does not render the native library in a browser.
+
+`pnpm check` passed with documentation TypeScript and production build checks, the existing 128 component tests and 2 script tests, lint, formatting, and library build. The docs build produced 15 HTML pages including the error page, and validated local page links, heading anchors, asset paths, and the Pagefind search bundle under the Pages base path. Expo Doctor passed 21/21; packed-consumer installation, types, and iOS/Android bundles also passed after adding the isolated docs tooling.
+
+Browser checks used the production preview: desktop sidebar/content/page-outline layout, 390-pixel mobile layout without page overflow, menu navigation to ConfirmationDialog, a search for `submitting`, package-manager code tabs, light/dark appearance, landing-page links, and correct GitHub Edit-page URLs. Publication uses `.github/workflows/docs.yml`, with build validation for pull requests and Pages deployment from `main`. Package availability and unresolved native checks remain visible in the published content.
+
 ### Native release gates
 
 | Gate              | Required evidence                                                                                        | Native status                                                                                                               |

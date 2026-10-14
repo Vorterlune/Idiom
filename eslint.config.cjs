@@ -18,6 +18,7 @@ module.exports = defineConfig([
       'coverage/**',
       '.artifacts/**',
       '.consumer-test/**',
+      '**/.astro/**',
       'apps/showcase/android/**',
       'apps/showcase/ios/**',
       'apps/showcase/.rnstorybook/storybook.requires.ts',
@@ -26,5 +27,9 @@ module.exports = defineConfig([
   {
     files: ['**/*.ts', '**/*.tsx'],
     rules: { '@typescript-eslint/no-explicit-any': 'error' },
+  },
+  {
+    files: ['apps/docs/src/content.config.ts'],
+    rules: { 'import/no-unresolved': ['error', { ignore: ['^astro:'] }] },
   },
 ]);

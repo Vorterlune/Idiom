@@ -4,6 +4,11 @@ dist
 coverage
 .expo
 .artifacts
+.astro
+apps/docs/src/content/docs/docs/concepts
+apps/docs/src/content/docs/docs/status
+apps/docs/src/content/docs/docs/reference
+apps/docs/src/content/docs/docs/guides/expo-comparison.md
 .consumer-test
 pnpm-lock.yaml
 apps/showcase/android

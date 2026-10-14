@@ -2,6 +2,8 @@
 
 **One API. Native conventions.**
 
+[Read the documentation](https://vorterlune.github.io/Idiom/docs/quick-start/) · [Component guides](https://vorterlune.github.io/Idiom/docs/components/settings/)
+
 Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use settings screens, editable forms, and confirmation dialogs. Expo UI supplies native presentation; Idiom supplies layout, labels, semantic icons, and interaction conventions. Forms use React Native text inputs inside Expo UI presentation to keep ordinary React string values and callbacks.
 
 Describe a preference or editable field, connect it to your state, and let Idiom handle its presentation.

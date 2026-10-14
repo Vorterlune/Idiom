@@ -26,6 +26,14 @@ Use the existing decorators and wrappers: Storybook supplies the `SafeAreaProvid
 
 Run `pnpm storybook:bundle` alongside the normal `pnpm bundle` to check both iOS and Android exports. On each native platform, check story switching, Controls/Actions, reset behavior, appearance, scrolling, and safe-area layout. Record any native checks that could not be performed in the [verification record](docs/verification.md).
 
+## Documentation website
+
+The GitHub Pages website lives in `apps/docs` and uses Astro Starlight. Run `pnpm docs:dev` for local editing, `pnpm docs:build` for the static site and internal-link checks, or `pnpm docs:preview` to inspect a production build. The configured base path is `/Idiom/`, including during local preview.
+
+Write guides as Markdown or MDX in `apps/docs/src/content/docs`. Every build synchronizes the README comparison sections, public TypeScript interfaces, architecture, semantic-layer explanation, and verification record from their repository sources. Edit those source files rather than the ignored generated copies. The synchronization script also rewrites their repository-relative links for the website.
+
+`pnpm check` includes docs typechecking and production build verification. The Documentation workflow builds pull requests and deploys pushes to `main` using GitHub Pages Actions. It does not publish the npm package or run the native showcase in a browser.
+
 ## Making a change
 
 1. Add or update the smallest relevant showcase example.

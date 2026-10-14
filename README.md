@@ -2,7 +2,7 @@
 
 **One API. Native conventions.**
 
-Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use settings screens and editable forms. Expo UI supplies native presentation; Idiom supplies layout, labels, semantic icons, and interaction conventions. Forms use React Native text inputs inside Expo UI presentation to keep ordinary React string values and callbacks.
+Idiom is an opinionated wrapper around **[Expo UI (`@expo/ui`)](https://docs.expo.dev/versions/v57.0.0/sdk/ui/)** for React Native and Expo apps. It turns native UI primitives into ready-to-use settings screens, editable forms, and confirmation dialogs. Expo UI supplies native presentation; Idiom supplies layout, labels, semantic icons, and interaction conventions. Forms use React Native text inputs inside Expo UI presentation to keep ordinary React string values and callbacks.
 
 Describe a preference or editable field, connect it to your state, and let Idiom handle its presentation.
 
@@ -165,13 +165,99 @@ These examples use different input models. Idiom does not convert Expo's observa
 
 Pass each field's validation message as `error`. Pass a save failure as `Form.Screen`'s `error`, and bind `submitting` to your application's pending state. Validation rules, when errors appear, saving, and success navigation remain application code; neither example implements those policies for you.
 
+## Confirmations: Expo UI and Idiom
+
+Direct Expo UI uses different alert composition on each platform. These primitive examples assume application-owned `open`, `setOpen`, and `resetPreferences`; a production adapter also needs to guard repeated native dismissal and button events.
+
+```tsx
+// iOS adapter
+import { Alert, Button, Host, Text } from '@expo/ui/swift-ui';
+
+<Host>
+  <Alert title="Reset preferences?" isPresented={open} onIsPresentedChange={setOpen}>
+    <Alert.Trigger>
+      <Button label="Reset preferences" onPress={() => setOpen(true)} />
+    </Alert.Trigger>
+    <Alert.Actions>
+      <Button label="Cancel" role="cancel" onPress={() => setOpen(false)} />
+      <Button
+        label="Reset preferences"
+        role="destructive"
+        onPress={() => {
+          setOpen(false);
+          resetPreferences();
+        }}
+      />
+    </Alert.Actions>
+    <Alert.Message>
+      <Text>Your name and email will stay as they are.</Text>
+    </Alert.Message>
+  </Alert>
+</Host>;
+```
+
+```tsx
+// Android adapter
+import { AlertDialog, Host, Text, TextButton } from '@expo/ui/jetpack-compose';
+
+<Host>
+  {open && (
+    <AlertDialog onDismissRequest={() => setOpen(false)}>
+      <AlertDialog.Title>
+        <Text>Reset preferences?</Text>
+      </AlertDialog.Title>
+      <AlertDialog.Text>
+        <Text>Your name and email will stay as they are.</Text>
+      </AlertDialog.Text>
+      <AlertDialog.DismissButton>
+        <TextButton onClick={() => setOpen(false)}>
+          <Text>Cancel</Text>
+        </TextButton>
+      </AlertDialog.DismissButton>
+      <AlertDialog.ConfirmButton>
+        <TextButton
+          onClick={() => {
+            setOpen(false);
+            resetPreferences();
+          }}
+        >
+          <Text>Reset preferences</Text>
+        </TextButton>
+      </AlertDialog.ConfirmButton>
+    </AlertDialog>
+  )}
+</Host>;
+```
+
+Idiom owns the hosting, cancellation, destructive presentation, and callback guard. Render it beside screen content; your existing row or button opens it.
+
+```tsx
+import { ConfirmationDialog } from '@idiom/ui';
+
+<ConfirmationDialog
+  open={resetOpen}
+  onOpenChange={setResetOpen}
+  title="Reset preferences?"
+  message="Restore settings defaults. Your name and email will stay as they are."
+  confirmLabel="Reset preferences"
+  destructive
+  onConfirm={resetPreferences}
+/>;
+```
+
+`cancelLabel` defaults to `"Cancel"`, and `destructive` defaults to `false`. Confirm requests `onOpenChange(false)` before invoking `onConfirm` once. Cancel and native dismissal only request closure. A programmatic close or unmount does not run an action. Native alerts dismiss when a choice is made; accept that request by updating `open`. If the request is ignored, unrelated renders do not reopen the resolved dialog. Set `open` false, then true, to begin a new presentation.
+
+Keep async work in your action handler and display progress or failures in the application screen. There is no promise lifecycle or global dialog queue. Native content supplies accessible labels; `testID` is forwarded to the adapter and its `.confirm` and `.cancel` buttons. The iOS system alert does not expose those identifiers in the simulator accessibility tree, so native tests should locate its buttons by label. See the [verification record](docs/verification.md) for device checks.
+
+Appearance and accent preferences are forwarded to the native Host. On iOS 27 with Expo UI 57.0.23, the alert follows the device's light/dark appearance: a provider-only dark override does not change its native surface. Accent overrides work. This appearance limitation remains an open native verification issue.
+
 ## How it fits your development workflow
 
 Start with one settings or profile-editing screen in your existing Expo app. Keep your hooks, state store, form library, persistence, permission handling, and router. Pass their values and callbacks into Idiom; a notification toggle still needs your application logic to request permission, save the preference, or call a server.
 
 Use `IdiomProvider` when you need appearance or accent overrides. Compose reusable sections with ordinary React components, fragments, and conditional children. For custom React Native content, use the screen's `header` slot or a row's display-only `trailing` slot; see [composition and custom content](#composition-and-custom-content). The native Storybook catalogue lets you explore props, events, and appearance while developing.
 
-Keep using Expo UI directly for screens that need custom layouts or controls outside Idiom's current patterns. Idiom is a good fit when its defaults match your product; direct primitives give you more control when they do not. The tradeoff is an extra dependency and a deliberately small styling API. The current scope is iOS and Android settings, text/name/email forms, `SearchBar`, and `EmptyState`; package availability and validation status are below.
+Keep using Expo UI directly for screens that need custom layouts or controls outside Idiom's current patterns. Idiom is a good fit when its defaults match your product; direct primitives give you more control when they do not. The tradeoff is an extra dependency and a deliberately small styling API. The current scope is iOS and Android settings, text/name/email forms, confirmations, `SearchBar`, and `EmptyState`; package availability and validation status are below.
 
 ## Status
 
@@ -262,23 +348,24 @@ Idiom never inserts a safe-area provider implicitly. A screen below a navigator 
 
 Import all public components and types from `@idiom/ui`. No native adapter or renderer selection is exposed.
 
-| Component          | Purpose and main props                                                                                                                  |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `IdiomProvider`    | `appearance`: `system`, `light`, or `dark`; optional `accentColor`. System appearance is the default.                                   |
-| `Settings.Screen`  | Owns scrolling and tablet content width. `title`, React Native `header` slot, `safeAreaEdges`, and `children`.                          |
-| `Settings.Section` | Groups semantic children with optional `title` and `footer`.                                                                            |
-| `Settings.Row`     | `label`, `description`, semantic `icon`, display-only React Native `trailing` slot, `disabled`, optional `onPress`.                     |
-| `Settings.Toggle`  | Row content plus controlled boolean `value` and `onValueChange`.                                                                        |
-| `Settings.Link`    | Row content and required `onPress`, with a native navigation affordance.                                                                |
-| `Settings.Value`   | Row content and a read-only string `value`.                                                                                             |
-| `Settings.Picker`  | Controlled string `value`, readonly `{ label, value }` `options`, and `onValueChange`.                                                  |
-| `Form.Screen`      | `onSubmit`, `submitLabel`, controlled `submitting`, `submitDisabled`, form `error`, `title`, and `safeAreaEdges`.                       |
-| `Form.Section`     | Groups editable fields with optional `title` and `footer`.                                                                              |
-| `Form.TextField`   | String `value`/`onChangeText`, `label`, `kind`: `text`, `name`, or `email`; optional `description`, `error`, `disabled`, and focus ref. |
-| `SearchBar`        | Controlled `value`/`onChangeText`, `placeholder`, `disabled`, optional `onSubmit`, and accessible clear action.                         |
-| `EmptyState`       | `title`, optional `description`/`icon`, and optional `action: { label, onPress }`.                                                      |
+| Component            | Purpose and main props                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `IdiomProvider`      | `appearance`: `system`, `light`, or `dark`; optional `accentColor`. System appearance is the default.                                   |
+| `Settings.Screen`    | Owns scrolling and tablet content width. `title`, React Native `header` slot, `safeAreaEdges`, and `children`.                          |
+| `Settings.Section`   | Groups semantic children with optional `title` and `footer`.                                                                            |
+| `Settings.Row`       | `label`, `description`, semantic `icon`, display-only React Native `trailing` slot, `disabled`, optional `onPress`.                     |
+| `Settings.Toggle`    | Row content plus controlled boolean `value` and `onValueChange`.                                                                        |
+| `Settings.Link`      | Row content and required `onPress`, with a native navigation affordance.                                                                |
+| `Settings.Value`     | Row content and a read-only string `value`.                                                                                             |
+| `Settings.Picker`    | Controlled string `value`, readonly `{ label, value }` `options`, and `onValueChange`.                                                  |
+| `Form.Screen`        | `onSubmit`, `submitLabel`, controlled `submitting`, `submitDisabled`, form `error`, `title`, and `safeAreaEdges`.                       |
+| `Form.Section`       | Groups editable fields with optional `title` and `footer`.                                                                              |
+| `Form.TextField`     | String `value`/`onChangeText`, `label`, `kind`: `text`, `name`, or `email`; optional `description`, `error`, `disabled`, and focus ref. |
+| `SearchBar`          | Controlled `value`/`onChangeText`, `placeholder`, `disabled`, optional `onSubmit`, and accessible clear action.                         |
+| `EmptyState`         | `title`, optional `description`/`icon`, and optional `action: { label, onPress }`.                                                      |
+| `ConfirmationDialog` | `open`/`onOpenChange`, `title`, `confirmLabel`/`onConfirm`, optional `message`, `cancelLabel`, and `destructive`.                       |
 
-Interactive components expose accessibility labels/hints and `testID`. The styling surface is intentionally small: system typography, semantic colors, native controls, and platform touch targets are part of the component contract.
+Interactive components expose `testID`; settings and text inputs also offer accessibility label overrides. Confirmation titles, messages, and button labels supply native accessibility content. The styling surface is intentionally small: system typography, semantic colors, native controls, and platform touch targets are part of the component contract.
 
 ```tsx
 const options = [

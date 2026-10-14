@@ -9,6 +9,7 @@ export const accessibilityElement = modifier('accessibilityElement');
 export const accessibilityAddTraits = modifier('accessibilityAddTraits');
 export const disabled = modifier('disabled');
 export const frame = modifier('frame');
+export const opacity = modifier('opacity');
 export const font = modifier('font');
 export const foregroundStyle = modifier('foregroundStyle');
 export const pickerStyle = modifier('pickerStyle');

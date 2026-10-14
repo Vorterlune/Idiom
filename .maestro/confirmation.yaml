@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+name: Confirm preference reset
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: settings-search
+    timeout: 30000
+- tapOn:
+    id: notifications-toggle
+- assertVisible: .*Notifications are off.*
+- tapOn:
+    id: privacy-link
+- tapOn:
+    id: reset-preferences-action
+- assertVisible: Reset preferences?
+- tapOn: Cancel
+- assertNotVisible: Reset preferences?
+- tapOn:
+    id: reset-preferences-action
+- tapOn: Reset preferences
+- assertNotVisible: Reset preferences?
+- back
+- assertVisible: .*Notifications are on.*

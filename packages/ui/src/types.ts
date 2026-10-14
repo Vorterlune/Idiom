@@ -130,3 +130,17 @@ export interface FormTextFieldProps {
   returnKeyType?: 'next' | 'done';
   ref?: Ref<FormTextFieldRef>;
 }
+
+export interface ConfirmationDialogProps {
+  open: boolean;
+  /** Accept user closure by setting open to false. A new false-to-true transition reopens. */
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  confirmLabel: string;
+  /** Runs once after requesting closure. The application handles any async work. */
+  onConfirm: () => void;
+  message?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+  testID?: string;
+}

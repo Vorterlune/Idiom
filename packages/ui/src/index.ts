@@ -30,7 +30,9 @@ export const Form = {
 export { EmptyState } from './EmptyState';
 export { SearchBar } from './SearchBar';
 export { IdiomProvider } from './provider';
+export { ConfirmationDialog } from './confirmation/ConfirmationDialog';
 export type {
+  ConfirmationDialogProps,
   FormScreenProps,
   FormSectionProps,
   FormTextFieldProps,

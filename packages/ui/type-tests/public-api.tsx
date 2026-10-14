@@ -6,6 +6,8 @@ import {
   EmptyState,
   IdiomProvider,
   Form,
+  ConfirmationDialog,
+  type ConfirmationDialogProps,
   type FormScreenProps,
   type FormSectionProps,
   type FormTextFieldProps,
@@ -165,3 +167,32 @@ export const formNativeMutation: FormTextFieldRef['setNativeProps'] = () => {};
 
 // @ts-expect-error Validation rules remain owned by the application.
 export const formValidationSchema: FormScreenProps['schema'] = {};
+
+const confirmation: ConfirmationDialogProps = {
+  open: true,
+  onOpenChange: (open) => {
+    const next: boolean = open;
+    return next;
+  },
+  title: 'Reset preferences?',
+  confirmLabel: 'Reset',
+  onConfirm: () => {},
+  message: 'Your profile is retained.',
+  cancelLabel: 'Keep preferences',
+  destructive: true,
+  testID: 'reset',
+};
+export const publicConfirmationExample = <ConfirmationDialog {...confirmation} />;
+
+export const confirmationWithoutAction = (
+  // @ts-expect-error A confirmation requires its application-owned action.
+  <ConfirmationDialog open title="Reset?" confirmLabel="Reset" onOpenChange={() => {}} />
+);
+export const confirmationWithoutClosure = (
+  // @ts-expect-error Applications must accept user closure requests.
+  <ConfirmationDialog open title="Reset?" confirmLabel="Reset" onConfirm={() => {}} />
+);
+// @ts-expect-error Confirmation visibility is a boolean.
+export const invalidConfirmationOpen: ConfirmationDialogProps['open'] = 'yes';
+// @ts-expect-error Dialog content is limited to title and message strings.
+export const arbitraryConfirmationContent: ConfirmationDialogProps['children'] = <></>;

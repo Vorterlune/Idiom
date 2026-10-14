@@ -87,4 +87,10 @@ This is a deliberate input-model choice. Expo UI's [universal TextInput contract
 
 Forms use non-scrolling Expo layouts inside an RN scroll viewport because the existing native Settings scrollers do not provide the same imperative focus-reveal interface. That implementation detail remains internal; consumers supply fields and handlers. It does not change Settings' native scrolling or introduce another state-management dependency. Native keyboard transitions, measurement, and screen-reader announcements still require the [device checks](verification.md).
 
-Settings and editable forms are application patterns, rather than aliases for every Expo primitive. Further additions should continue to follow real consumer needs.
+## Confirmation actions
+
+Resetting preferences adds a shared application decision: explain the consequence, confirm or cancel, and invoke the action once. Expo uses SwiftUI Alert trigger/actions/message slots on iOS and Compose AlertDialog title/text/button slots on Android. `ConfirmationDialog` centralizes those adapters, hosting, native cancellation, destructive presentation, and duplicate-event guards. The application supplies the title, message, labels, open state, and action. See the [direct Expo comparison](../README.md#confirmations-expo-ui-and-idiom).
+
+Native alerts close when a choice is made, so the application must accept `onOpenChange(false)`. Confirm then requests the application action once; there is no inferred async lifecycle or global dialog queue. An ignored closure does not reopen on unrelated renders. The showcase resets preference defaults while retaining the edited profile; the reset policy lives in application state.
+
+Settings, editable forms, and confirmations are application patterns, rather than aliases for every Expo primitive. Further additions should continue to follow real consumer needs.

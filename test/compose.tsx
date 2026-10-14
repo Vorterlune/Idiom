@@ -14,7 +14,14 @@ const container = (name: string) => {
 };
 
 const Slot = container('Compose.Slot');
-export const Host = container('Compose.Host');
+export function Host(props: Props) {
+  // Compose dialogs render outside the anchor's touch policy.
+  return (
+    <View {...props} pointerEvents={undefined}>
+      {props.children}
+    </View>
+  );
+}
 export const RNHostView = container('Compose.RNHostView');
 export const Row = container('Compose.Row');
 export const Column = container('Compose.Column');
@@ -72,6 +79,44 @@ function MenuItem(props: Props & { modifiers?: readonly TestModifier[]; enabled?
 }
 
 export const DropdownMenuItem = Object.assign(MenuItem, { Text: Slot, TrailingIcon: Slot });
+
+export const AlertDialog = Object.assign(
+  function NativeAlertDialog(
+    props: Props & {
+      modifiers?: readonly TestModifier[];
+      onDismissRequest?: () => void;
+    },
+  ) {
+    const testID = props.modifiers?.find((item) => item.name === 'testID')?.args[0];
+    return (
+      <View
+        {...props}
+        {...(typeof testID === 'string' ? { testID } : {})}
+        onAccessibilityEscape={props.onDismissRequest}
+      >
+        {props.children}
+      </View>
+    );
+  },
+  { Title: Slot, Text: Slot, ConfirmButton: Slot, DismissButton: Slot },
+);
+
+export function TextButton(
+  props: Props & { modifiers?: readonly TestModifier[]; onClick?: () => void },
+) {
+  const testID = props.modifiers?.find((item) => item.name === 'testID')?.args[0];
+  return (
+    <View
+      {...props}
+      accessible
+      accessibilityRole="button"
+      {...{ onPress: props.onClick }}
+      {...(typeof testID === 'string' ? { testID } : {})}
+    >
+      {props.children}
+    </View>
+  );
+}
 
 export function Text(props: Props) {
   return <RNText {...props}>{props.children ?? props.text}</RNText>;

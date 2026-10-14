@@ -125,8 +125,8 @@ write(
   `import { useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Text } from 'react-native';
-import { EmptyState, Form, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
-import type { FormScreenProps, FormSectionProps, FormTextFieldProps, FormTextFieldRef, SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
+import { ConfirmationDialog, EmptyState, Form, IdiomProvider, SearchBar, Settings } from '@idiom/ui';
+import type { ConfirmationDialogProps, FormScreenProps, FormSectionProps, FormTextFieldProps, FormTextFieldRef, SettingsPickerOption, SettingsToggleProps } from '@idiom/ui';
 
 const options: readonly SettingsPickerOption<'system' | 'dark'>[] = [{label:'System',value:'system'}, {label:'Dark',value:'dark'}];
 function PreferencesSection({ value, onValueChange }: Pick<SettingsToggleProps, 'value' | 'onValueChange'>) {
@@ -152,6 +152,8 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [appearance, setAppearance] = useState<'system' | 'dark'>('system');
   const [editing, setEditing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const confirmation: Pick<ConfirmationDialogProps, 'title' | 'confirmLabel'> = { title: 'Reset preference?', confirmLabel: 'Reset' };
   return <SafeAreaProvider><IdiomProvider appearance={appearance}>
     {editing ? <ProfileForm onSubmit={() => setEditing(false)} /> : <Settings.Screen title="Consumer" header={<SearchBar value={query} onChangeText={setQuery} />}>
       <Settings.Section title="Preferences">
@@ -159,12 +161,14 @@ export default function App() {
         <Settings.Picker label="Appearance" value={appearance} options={options} onValueChange={setAppearance} />
         <Settings.Link label="Details" onPress={() => setQuery('details')} />
         <Settings.Link label="Edit profile" onPress={() => setEditing(true)} />
+        <Settings.Row label="Reset preference" onPress={() => setConfirming(true)} />
         <Settings.Value label="Version" value="0.1.0" />
         <Settings.Row label="Read only" trailing={<Text>Custom content</Text>} />
       </Settings.Section>
       <PreferencesSection value={enabled} onValueChange={setEnabled} />
       {query ? <EmptyState title="No results" action={{label:'Clear',onPress:() => setQuery('')}} /> : null}
     </Settings.Screen>}
+    <ConfirmationDialog {...confirmation} open={confirming} onOpenChange={setConfirming} onConfirm={() => setEnabled(false)} destructive />
   </IdiomProvider></SafeAreaProvider>;
 }
 `,

@@ -114,16 +114,55 @@ Still unverified natively: populated name/email autofill completion; comprehensi
 
 The repeatable profile smoke flow is `.maestro/forms.yaml`; the checks above are a record of the interactions actually exercised, not a claim that the entire flow or native release matrix passed. Before marking Forms natively verified on each platform, complete the remaining checks and record the device, OS, and result.
 
+### ConfirmationDialog implementation — 2026-10-14
+
+Environment: macOS, Node 24.21.0, pnpm 11.19.0, Expo 57.0.28, Expo UI 57.0.23, React Native 0.86.3, and React 19.2.3. These checks cover the ConfirmationDialog changes on top of `030709a`. The existing aligned iOS development binary from the Forms rebuild was reused; no native dependency or configuration changed.
+
+| Check                              | Result                                                                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm check`                       | Passed: library/showcase/public/test types, ESLint, formatting, 128 tests across 16 iOS/Android suites, 2 script tests, and package build       |
+| Expo Doctor                        | Passed, 21/21 checks                                                                                                                            |
+| iOS showcase and Storybook exports | Passed, including the ConfirmationDialog stories                                                                                                |
+| Clean external package consumer    | Installation, public component/type imports, and iOS/Android bundles passed                                                                     |
+| Native iOS                         | Settings reset workflow and Storybook interaction checks below; appearance override failure and incomplete accessibility checks remain explicit |
+| Native Android                     | Deferred under the user's current iOS-only testing preference; mocked tests and consumer bundling do not establish native behavior              |
+
+Behavioral tests cover opening, Confirm/Cancel, native dismissal, duplicate events, dismissal arriving before a queued Confirm activation, callback ordering, ignored closure requests, programmatic closure, reopening, stale events, unmounting, current callbacks, labels, destructive roles/colors, and appearance forwarding. The showcase integration test seeds every preference away from its default, verifies Cancel preserves all values, then verifies Confirm restores all five defaults while retaining the edited name/email. Existing Settings and Forms regression suites pass.
+
+Command logs are under `/tmp/idiom-confirmation-*.log`. The clean-consumer receipt is `.artifacts/consumer-verification.json`; generated evidence is not published package content. Storybook was cold-launched after a Metro cache reset to recover an obsolete generated story reference during development.
+
+Native checks used iPhone 18 Pro/iOS 27 and iPad (A16)/iPadOS 27 in Xcode 27 Device Hub, with the actual Expo alert and native accessibility hierarchy.
+
+| iOS scenario                      | Observed result                                                                                                                                                                                                                                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reset from Privacy                | Centered native alert with full title/message, Cancel, and a red destructive Reset action; no visible or accessible trigger from the internal anchor                                                                                                                                                 |
+| Cancel and reopening              | Cancel preserved analytics and the edited profile; opening again presented a fresh alert                                                                                                                                                                                                             |
+| Confirm reset                     | Notifications and sounds returned on, analytics and directory visibility returned off, and appearance returned to System; Taylor Kim/taylor@example.com remained in Profile                                                                                                                          |
+| Ordinary action and accent        | Confirm increased the story count exactly once; custom accent `#a33b80` appeared on both ordinary action labels                                                                                                                                                                                      |
+| Long content and enlarged text    | Long title, message, and labels wrapped; at system text-size setting 9 the native message scrolled to its end and both buttons remained reachable; original size 3 restored                                                                                                                          |
+| External closure                  | Parent timer closed the native alert and the action count remained zero                                                                                                                                                                                                                              |
+| Ignored closure                   | Confirm incremented once and stayed closed through the parent count update and another Open attempt; resetting `open` false and opening again presented a fresh alert                                                                                                                                |
+| Keyboard interaction              | Opening while the software keyboard was active dismissed it for the alert; Cancel and Confirm worked, typing changed the draft to `Keyboard testq`, and Confirm preserved that draft and restored the keyboard                                                                                       |
+| System appearance                 | Alert followed device Light/Dark settings; the original Light setting was restored                                                                                                                                                                                                                   |
+| Provider-only appearance override | **Failed:** the Dark story on a light device retained a light native alert surface. Host appearance forwarding, Expo's presentation modifier, and waiting for anchor layout did not correct it. No ineffective workaround or global appearance mutation is retained                                  |
+| iPad layout                       | Reset alert was centered with readable message and reachable buttons; Cancel closed it                                                                                                                                                                                                               |
+| VoiceOver                         | Partial visual evidence on iPad: focus entered the alert title and returned to the underlying Settings back button after Cancel. Touch navigation failed with a computer-control accessibility error; audible speech and return to the original trigger were not established. VoiceOver restored off |
+
+The iOS system alert does not expose the forwarded dialog/button `testID` values in the native accessibility tree. `.maestro/confirmation.yaml` therefore selects the native actions by their observed labels. The flow is provided for repeatability; the record above reflects manually exercised UI checks, not a claim that Maestro ran.
+
+Still unresolved: provider-only iOS appearance overrides. Still unverified: complete VoiceOver gesture/speech behavior and trigger-focus restoration, rotation, physical-device behavior, and the broader native matrix. Android interactions and TalkBack remain deferred. These gaps prevent marking ConfirmationDialog fully natively verified despite passing JavaScript contracts and bundle checks.
+
 ### Native release gates
 
-| Gate              | Required evidence                                                                                       | Native status                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Foundation        | Development builds boot on iOS and Android                                                              | Passed 2026-10-13; environments and base commit above                            |
-| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction           | Pending                                                                          |
-| Complete settings | Link, read-only Value, Picker, working destinations                                                     | Pending                                                                          |
-| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                                  | Pending                                                                          |
-| Forms             | Controlled text, focus and keyboard layout, validation feedback, submission, and screen-reader behavior | Partial: iOS smoke passed 2026-10-14; remaining checks above; Android unverified |
-| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                             | Pending native builds                                                            |
+| Gate              | Required evidence                                                                                        | Native status                                                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Foundation        | Development builds boot on iOS and Android                                                               | Passed 2026-10-13; environments and base commit above                                                                       |
+| First slice       | Native Screen/Section/Row/Toggle, scrolling, icons, appearance, slots, accessible interaction            | Pending                                                                                                                     |
+| Complete settings | Link, read-only Value, Picker, working destinations                                                      | Pending                                                                                                                     |
+| Search and polish | Text entry/clear, empty-state action, large fonts, tablets, appearance                                   | Pending                                                                                                                     |
+| Forms             | Controlled text, focus and keyboard layout, validation feedback, submission, and screen-reader behavior  | Partial: iOS smoke passed 2026-10-14; remaining checks above; Android unverified                                            |
+| Confirmations     | Native Confirm/Cancel, closure/reopening, appearance, large text, tablet layout, and screen-reader focus | Partial: iOS interactions passed 2026-10-14; provider appearance override failed; full VoiceOver and Android checks pending |
+| Release package   | Tarball installed in a clean consumer; declarations, bundles, native builds                              | Pending native builds                                                                                                       |
 
 Before a release, replace pending entries with the date, OS/device, SDK version, commit, and result. Keep failures visible until corrected. A successful Android run does not certify iOS.
 
@@ -154,6 +193,7 @@ Install and launch a development build on a device or emulator. Start Metro with
 maestro test -e APP_ID=dev.vorterlune.idiom.showcase .maestro/settings.yaml
 maestro test -e APP_ID=dev.vorterlune.idiom.showcase .maestro/search.yaml
 maestro test -e APP_ID=dev.vorterlune.idiom.showcase .maestro/navigation.yaml
+maestro test -e APP_ID=dev.vorterlune.idiom.showcase .maestro/confirmation.yaml
 ```
 
 The flows use visible behavior and stable test IDs. Run them on each platform, resetting the app session between flows where indicated. Native menu text/focus may require platform-specific selectors; any adjustment must follow an observed accessibility hierarchy and must not weaken assertions.

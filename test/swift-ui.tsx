@@ -30,13 +30,42 @@ const container = (name: string) => {
   return NativeContainer;
 };
 
-export const Host = container('SwiftUI.Host');
+export function Host(props: Props) {
+  // Native alerts use a separate window, outside the anchor's touch policy.
+  return (
+    <View {...props} pointerEvents={undefined}>
+      {props.children}
+    </View>
+  );
+}
 export const RNHostView = container('SwiftUI.RNHostView');
 export const Form = container('SwiftUI.Form');
 export const HStack = container('SwiftUI.HStack');
 export const VStack = container('SwiftUI.VStack');
 export const Spacer = container('SwiftUI.Spacer');
 export const Image = container('SwiftUI.Image');
+
+export const Alert = Object.assign(
+  function NativeAlert(
+    props: Props & {
+      isPresented: boolean;
+      onIsPresentedChange?: (presented: boolean) => void;
+    },
+  ) {
+    if (!props.isPresented) return null;
+    return (
+      <View {...props} onAccessibilityEscape={() => props.onIsPresentedChange?.(false)}>
+        <RNText>{props.title}</RNText>
+        {props.children}
+      </View>
+    );
+  },
+  {
+    Trigger: container('Alert.Trigger'),
+    Actions: container('Alert.Actions'),
+    Message: container('Alert.Message'),
+  },
+);
 
 export function Text(props: Props) {
   return (
@@ -59,9 +88,12 @@ export function Section(props: Props) {
 
 export function Button(props: Props) {
   const dismiss = useContext(DismissMenuContext);
+  const nativeProps = { ...props };
+  delete nativeProps.role;
   return (
     <View
-      {...props}
+      {...nativeProps}
+      {...{ nativeRole: props.role }}
       accessible
       accessibilityRole="button"
       {...swiftAccessibility(props.modifiers)}

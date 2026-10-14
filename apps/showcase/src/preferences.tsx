@@ -20,6 +20,7 @@ interface Preferences {
   setPublicProfile: (enabled: boolean) => void;
   profile: Profile;
   setProfile: (profile: Profile) => void;
+  resetPreferences: () => void;
 }
 
 const PreferencesContext = createContext<Preferences | null>(null);
@@ -34,6 +35,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     name: 'Alex Morgan',
     email: 'alex@example.com',
   });
+
+  function resetPreferences() {
+    setAppearance('system');
+    setNotifications(true);
+    setSounds(true);
+    setAnalytics(false);
+    setPublicProfile(false);
+  }
 
   return (
     <PreferencesContext.Provider
@@ -50,6 +59,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         setPublicProfile,
         profile,
         setProfile,
+        resetPreferences,
       }}
     >
       {children}
